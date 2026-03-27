@@ -888,7 +888,6 @@ body {
 
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
 // ---- SUPABASE ----
 // ---- AUTH CHECK ----
@@ -928,7 +927,12 @@ async function refreshTokenIfNeeded() {
       session.token = data.access_token;
       if (data.refresh_token) session.refresh_token = data.refresh_token;
       session.expires_at = Date.now() + (data.expires_in || 3600) * 1000;
-      if (data.user) session.user = data.user;
+      if (data.user) {
+        var oldMeta = session.user && session.user.user_metadata;
+        session.user = data.user;
+        // Préserver les user_metadata si le refresh ne les retourne pas
+        if (oldMeta && !session.user.user_metadata) session.user.user_metadata = oldMeta;
+      }
       localStorage.setItem("sb_session", JSON.stringify(session));
       sbAuthToken = data.access_token;
       sbHeaders['Authorization'] = 'Bearer ' + data.access_token;
@@ -948,7 +952,10 @@ function showToast(msg) {
 function getDateStr(offset) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 async function loadReservations() {
@@ -1272,10 +1279,19 @@ async function loadRestaurantData() {
     }
   }
 
-  // Essai 3 : chercher par nom (dernier recours, uniquement si aucun ID en cache)
+  // Essai 3 : chercher par nom insensible à la casse (dernier recours)
   if (!data || data.length === 0) {
-    var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=eq.' + encodeURIComponent(restoName), { headers: sbHeaders });
+    var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
     if (rs3.ok) { var d3 = await rs3.json(); if (d3 && d3.length > 0) data = d3; }
+  }
+
+  // Essai 4 : chercher par slug dérivé du nom (si le nom a changé légèrement)
+  if (!data || data.length === 0) {
+    var slugFallback = restoName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (slugFallback) {
+      var rs4 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?slug=ilike.' + encodeURIComponent(slugFallback), { headers: sbHeaders });
+      if (rs4.ok) { var d4 = await rs4.json(); if (d4 && d4.length > 0) data = d4; }
+    }
   }
 
   if (data && data.length > 0) {
@@ -1577,8 +1593,13 @@ async function saveRestaurantInfo() {
       localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
     }
     showToast('Informations sauvegardées !');
+  } else {
+    res.json().then(function(t) {
+      console.error('saveRestaurantInfo error', res.status, t);
+      var msg = (t && t.error) ? String(t.error).substring(0, 120) : ('HTTP ' + res.status);
+      showToast('Erreur (' + res.status + '): ' + msg);
+    }).catch(function() { showToast('Erreur HTTP ' + res.status); });
   }
-  else showToast('Erreur lors de la sauvegarde');
 }
 
 // ---- SAVE CRENEAUX ----

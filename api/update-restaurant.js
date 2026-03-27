@@ -3,6 +3,8 @@
 // Body: { restaurantId, payload }
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://tagpmmmclljaqahldkys.supabase.co';
+// Clé anon en dur comme fallback final (déjà exposée côté client dans le HTML)
+const SUPABASE_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,8 +15,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   // Clé service role (bypass RLS) ou clé anon en fallback
-  const authKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
-  if (!authKey) return res.status(500).json({ error: 'Supabase key not configured' });
+  const authKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || SUPABASE_KEY_FALLBACK;
 
   let body;
   try {
