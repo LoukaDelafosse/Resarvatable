@@ -49,15 +49,10 @@ module.exports = async function handler(req, res) {
   const parisOffset = getParisOffset(now);
   const todayParis = toParisDate(now, parisOffset);
 
-  const targetTimes = [];
-  for (let offsetMin = 105; offsetMin <= 150; offsetMin += 15) {
-    const t = new Date(now.getTime() + offsetMin * 60 * 1000);
-    targetTimes.push(toParisTimeStr(t, parisOffset));
-  }
-  const uniqueTimes = [...new Set(targetTimes)];
+  const lowerTime = toParisTimeStr(new Date(now.getTime() + 105 * 60 * 1000), parisOffset);
+  const upperTime = toParisTimeStr(new Date(now.getTime() + 150 * 60 * 1000), parisOffset);
 
-  const timeFilter = uniqueTimes.map(t => `"${t}"`).join(",");
-  const query = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${todayParis}&status=neq.ann&reminder_sent=eq.false&time=in.(${timeFilter})&select=id,guest_name,guest_phone,email,time,covers,date,restaurant_name`;
+  const query = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${todayParis}&status=neq.ann&reminder_sent=eq.false&time=gte.${lowerTime}&time=lte.${upperTime}&select=id,guest_name,guest_phone,email,time,covers,date,restaurant_name`;
 
   const sbRes = await fetch(query, {
     headers: {
