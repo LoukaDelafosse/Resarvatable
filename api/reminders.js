@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
   }
 
   const reservations = await sbRes.json();
-  console.log(`[Reminders] ${todayParis} — ${reservations.length} rappel(s) à envoyer (créneaux: ${uniqueTimes.join(", ")})`);
+  console.log(`[Reminders] ${todayParis} — ${reservations.length} rappel(s) à envoyer (fenêtre: ${lowerTime}–${upperTime})`);
 
   const results = [];
 
