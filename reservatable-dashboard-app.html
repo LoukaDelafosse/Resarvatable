@@ -971,16 +971,13 @@ async function loadReservations() {
     restoFilter = restoName ? '&restaurant_name=ilike.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
   }
   const resaUrl = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`;
-  console.error('[DIAG] restaurantData:', restaurantData ? restaurantData.id : 'NULL', '| URL:', resaUrl);
   const res = await fetch(resaUrl, { headers: sbHeaders });
   if (!res.ok) {
     const errTxt = await res.text();
-    console.error('[DIAG] fetch erreur:', res.status, errTxt);
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement (' + res.status + ')</td></tr>';
     return;
   }
   const data = await res.json();
-  console.error('[DIAG] reservations reçues:', data ? data.length : 0, '| date:', date, '| filtre:', restoFilter);
   reservations = data.map(r => ({
     id: r.id,
     time: r.time || '—',
@@ -1066,7 +1063,7 @@ function renderTable(filter) {
   const tbody = document.getElementById('resa-tbody');
   const rows = filter === 'all' ? reservations : reservations.filter(r => r.status === filter || (filter==='conf' && r.status==='arr'));
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune reservation pour ce jour<br><small style="font-size:0.7rem;opacity:0.6">date:' + getDateStr(dayOffset) + ' | resto:' + (restaurantData ? restaurantData.id : 'null') + '</small></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune réservation pour ce jour</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
