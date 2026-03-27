@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservatable — Dashboard Restaurant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F8F7F5;
+  --surface: #FFFFFF;
+  --surface2: #F1EFE8;
+  --surface3: #E5E2D9;
+  --border: rgba(28,25,23,0.09);
+  --border2: rgba(28,25,23,0.16);
+  --text: #1C1917;
+  --text2: rgba(28,25,23,0.55);
+  --text3: rgba(28,25,23,0.38);
+  --accent: #C2622A;
+  --accent2: #E8A87C;
+  --accent-bg: rgba(194,98,42,0.12);
+  --green: #2D9E6B;
+  --green-bg: rgba(45,158,107,0.12);
+  --amber: #D4A017;
+  --amber-bg: rgba(212,160,23,0.12);
+  --red: #C24040;
+  --red-bg: rgba(194,64,64,0.12);
+  --sidebar-w: 220px;
+}
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 300;
+  font-size: 14px;
+  display: flex;
+}
+
+/* ---- SIDEBAR ---- */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 50;
+}
+.sidebar-logo {
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.sidebar-logo .brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+.sidebar-logo .brand span { color: var(--accent2); font-style: italic; }
+.sidebar-logo .resto-name {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+}
+.nav-section-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 0 1.25rem;
+  margin: 0.75rem 0 0.4rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 0.85rem;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+}
+.nav-item:hover { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--text); border-left-color: var(--accent); background: var(--accent-bg); }
+.nav-icon { width: 16px; text-align: center; font-size: 14px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: white;
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 1.25rem;
+}
+.user-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 500; color: var(--accent2);
+  flex-shrink: 0;
+}
+.user-info .name { font-size: 0.82rem; color: var(--text); }
+.user-info .role { font-size: 0.7rem; color: var(--text3); }
+
+/* ---- MAIN ---- */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- TOPBAR ---- */
+.topbar {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  position: sticky; top: 0; z-index: 40;
+}
+.topbar-left h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+.topbar-left .date-str { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.date-nav {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.date-nav button {
+  background: none; border: none; color: var(--text2); cursor: pointer;
+  font-size: 12px; padding: 2px 6px; border-radius: 4px; transition: background 0.15s;
+}
+.date-nav button:hover { background: var(--surface3); color: var(--text); }
+.date-nav span { font-size: 0.8rem; color: var(--text); min-width: 80px; text-align: center; }
+.btn-add {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.15s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-add:hover { opacity: 0.85; }
+
+/* ---- CONTENT ---- */
+.content { padding: 1.5rem 2rem; flex: 1; }
+
+/* views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ---- STATS ROW ---- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+}
+.stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.stat-icon { font-size: 18px; }
+.stat-trend {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+.trend-up { background: var(--green-bg); color: var(--green); }
+.trend-down { background: var(--red-bg); color: var(--red); }
+.trend-neutral { background: var(--surface2); color: var(--text3); }
+.stat-val {
+  font-size: 1.8rem;
+  font-weight: 500;
+  font-family: 'Playfair Display', serif;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.stat-label { font-size: 0.75rem; color: var(--text3); }
+
+/* ---- MAIN GRID ---- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+}
+
+/* ---- RESERVATIONS TABLE ---- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title { font-size: 0.88rem; font-weight: 500; }
+.panel-actions { display: flex; gap: 8px; }
+.filter-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.filter-btn.active, .filter-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+.resa-table { width: 100%; border-collapse: collapse; }
+.resa-table th {
+  padding: 0.6rem 1.25rem;
+  text-align: left;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.resa-table td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.83rem;
+  color: var(--text2);
+  vertical-align: middle;
+}
+.resa-table tr:last-child td { border-bottom: none; }
+.resa-table tr:hover td { background: var(--surface2); }
+.guest-name { font-weight: 500; color: var(--text); }
+.guest-note { font-size: 0.72rem; color: var(--text3); margin-top: 2px; font-style: italic; }
+.time-badge {
+  background: var(--surface2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text);
+  font-weight: 500;
+  display: inline-block;
+}
+.covers { display: flex; align-items: center; gap: 5px; }
+.cover-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); }
+.cover-dot.filled { background: var(--accent2); }
+.status-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  display: inline-block;
+}
+.s-conf { background: var(--green-bg); color: var(--green); }
+.s-wait { background: var(--amber-bg); color: var(--amber); }
+.s-arr { background: rgba(194,98,42,0.15); color: var(--accent2); }
+.s-ann { background: var(--red-bg); color: var(--red); }
+.s-done { background: var(--surface2); color: var(--text3); }
+.row-actions { display: flex; gap: 6px; }
+.row-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.row-btn:hover { background: var(--surface3); color: var(--text); }
+.row-btn.danger:hover { background: var(--red-bg); color: var(--red); border-color: transparent; }
+
+/* ---- RIGHT COLUMN ---- */
+.right-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ---- FLOOR PLAN ---- */
+.floor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 1.25rem;
+}
+.table-cell {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  gap: 3px;
+}
+.table-cell:hover { transform: scale(1.04); }
+.table-num { font-size: 0.82rem; font-weight: 500; }
+.table-covers { font-size: 0.65rem; opacity: 0.7; }
+.t-libre { background: var(--green-bg); border-color: rgba(45,158,107,0.2); color: var(--green); }
+.t-res { background: var(--amber-bg); border-color: rgba(212,160,23,0.2); color: var(--amber); }
+.t-occ { background: var(--red-bg); border-color: rgba(194,64,64,0.2); color: var(--red); }
+.floor-legend {
+  display: flex;
+  gap: 12px;
+  padding: 0 1.25rem 1rem;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: var(--text3); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+.ld-libre { background: var(--green); }
+.ld-res { background: var(--amber); }
+.ld-occ { background: var(--red); }
+
+/* ---- MINI TIMELINE ---- */
+.timeline-wrap { padding: 1rem 1.25rem; }
+.timeline-bar-wrap { margin-bottom: 10px; }
+.tl-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.tl-time { font-size: 0.75rem; color: var(--text2); font-weight: 500; }
+.tl-count { font-size: 0.7rem; color: var(--text3); }
+.tl-bar-bg { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.tl-bar { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.4s; }
+.tl-bar.peak { background: var(--accent2); }
+.tl-bar.low { background: var(--surface3); }
+
+/* ---- SMS LOG ---- */
+.sms-list { padding: 0 1.25rem 1rem; display: flex; flex-direction: column; gap: 8px; }
+.sms-item {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.sms-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.sms-name { font-size: 0.8rem; font-weight: 500; color: var(--text); }
+.sms-msg { font-size: 0.73rem; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+.sms-time { font-size: 0.68rem; color: var(--text3); margin-left: auto; flex-shrink: 0; }
+
+/* ---- STATS VIEW ---- */
+.stats-view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.chart-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+.chart-title { font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; }
+.bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--surface3);
+  transition: background 0.2s;
+  cursor: pointer;
+  min-height: 4px;
+}
+.bar:hover, .bar.today { background: var(--accent); }
+.bar-label { font-size: 0.65rem; color: var(--text3); }
+.bar-val { font-size: 0.68rem; color: var(--text2); }
+.donut-wrap { display: flex; align-items: center; gap: 1.5rem; }
+.donut-legend { display: flex; flex-direction: column; gap: 8px; }
+.dl-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+.dl-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.dl-val { margin-left: auto; font-weight: 500; font-size: 0.8rem; }
+
+/* ---- SETTINGS VIEW ---- */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 800px; }
+.settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+.settings-title { font-size: 0.85rem; font-weight: 500; margin-bottom: 1rem; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 0.82rem; color: var(--text2); }
+.setting-val { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+.setting-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  width: 80px;
+  text-align: center;
+}
+.toggle {
+  width: 36px; height: 20px;
+  background: var(--surface3);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.toggle.on { background: var(--green); border-color: transparent; }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  background: white;
+  border-radius: 50%;
+  top: 2px; left: 2px;
+  transition: left 0.2s;
+}
+.toggle.on::after { left: 18px; }
+
+/* ---- MODAL ADD ---- */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 1.75rem;
+  width: 100%; max-width: 440px;
+  transform: translateY(16px);
+  transition: transform 0.2s;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+.modal-title { font-size: 1rem; font-weight: 500; }
+.modal-close-btn {
+  background: var(--surface2); border: none; color: var(--text2);
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 12px; display: flex; align-items: center; justify-content: center;
+}
+.field-label { font-size: 0.72rem; color: var(--text3); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+.field { width: 100%; padding: 0.65rem 0.9rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; margin-bottom: 12px; transition: border-color 0.15s; }
+.field:focus { border-color: var(--accent); }
+.modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-submit { width: 100%; padding: 0.75rem; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; margin-top: 4px; transition: opacity 0.15s; }
+.btn-submit:hover { opacity: 0.85; }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  background: var(--green); color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem; font-weight: 500;
+  z-index: 300;
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.25s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Réserva<span>table</span></div>
+    <div class="resto-name">Le Pressoir Normand</div>
+  </div>
+
+  <span class="nav-section-label">Principal</span>
+  <div class="nav-item active" onclick="showView('today')">
+    <span class="nav-icon">📅</span> aujourd hui 
+    <span class="nav-badge" id="badge-today">0</span>
+  </div>
+  <div class="nav-item" onclick="showView('stats')">
+    <span class="nav-icon">📊</span> Statistiques
+  </div>
+
+  <span class="nav-section-label">Configuration</span>
+<div class="nav-item" onclick="showView('settings')">
+  <span class="nav-icon">⚙️</span> Paramètres
+  </div>
+  <div class="nav-item" onclick="showView('contact')">
+    <span class="nav-icon">💬</span> Contact & SAV
+  </div>
+  <div class="nav-item" onclick="openPublicPage()">
+    <span class="nav-icon">🔗</span> Ma page publique
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">??</div>
+      <div class="user-info">
+        <div class="name" id="user-name">Restaurateur</div>
+        <div class="role" style="cursor:pointer;color:var(--accent2)" onclick="logout()">Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 id="topbar-title">Réservations du jour</h1>
+      <div class="date-str" id="topbar-date"></div>
+    </div>
+    <div class="topbar-right">
+      <div class="date-nav">
+        <button onclick="changeDay(-1)">◀</button>
+        <span id="day-label">aujourd hui </span>
+        <button onclick="changeDay(1)">▶</button>
+      </div>
+      <button class="btn-add" onclick="openModal()">＋ Nouvelle résa</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== VUE aujourd hui  ===== -->
+    <div class="view active" id="view-today">
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-icon">👥</span><span class="stat-trend trend-neutral" id="trend-resa">—</span></div>
+          <div class="stat-val" id="stat-resa">0</div>
+          <div class="stat-label">Réservations</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-icon">🍽️</span><span class="stat-trend trend-neutral" id="trend-covers">—</span></div>
+          <div class="stat-val">0</div>
+          <div class="stat-label">Couverts prévus</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-icon">⚠️</span><span class="stat-trend trend-neutral">—</span></div>
+          <div class="stat-val">0</div>
+          <div class="stat-label">En attente confirm.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-icon">❌</span><span class="stat-trend trend-neutral" id="trend-ann">—</span></div>
+          <div class="stat-val">0</div>
+          <div class="stat-label">Annulations</div>
+        </div>
+      </div>
+
+      <div class="main-grid">
+
+        <!-- TABLE RÉSERVATIONS -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Liste des réservations</span>
+            <div class="panel-actions">
+              <button class="filter-btn active" onclick="filterResa('all',this)">Toutes</button>
+              <button class="filter-btn" onclick="filterResa('conf',this)">Confirmées</button>
+              <button class="filter-btn" onclick="filterResa('wait',this)">En attente</button>
+            </div>
+          </div>
+          <table class="resa-table" id="resa-table">
+            <thead>
+              <tr>
+                <th>Heure</th>
+                <th>Client</th>
+                <th>Couverts</th>
+                <th>Table</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="resa-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="right-col">
+
+          <!-- PLAN DE SALLE -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Plan de salle</span>
+              <div class="panel-actions">
+                <button class="filter-btn active" onclick="switchFloorZone('salle',this)">Salle</button>
+                <button class="filter-btn" onclick="switchFloorZone('terrasse',this)">Terrasse</button>
+                <button class="filter-btn" onclick="switchFloorZone('bar',this)">Bar</button>
+              </div>
+            </div>
+            <div class="floor-grid" id="floor-grid"></div>
+            <div class="floor-legend">
+              <div class="legend-item"><div class="legend-dot ld-libre"></div>Libre</div>
+              <div class="legend-item"><div class="legend-dot ld-res"></div>Réservé</div>
+              <div class="legend-item"><div class="legend-dot ld-occ"></div>Occupé</div>
+            </div>
+          </div>
+
+          <!-- TIMELINE -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Affluence par créneau</span></div>
+            <div class="timeline-wrap" id="timeline-wrap"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VUE STATS ===== -->
+    <div class="view" id="view-stats">
+      <div class="stats-view-grid">
+        <div class="chart-panel" style="grid-column:span 2">
+          <div class="chart-title">Réservations — 7 derniers jours</div>
+          <div class="bar-chart" id="week-chart"></div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-title">Répartition des statuts</div>
+          <div class="donut-wrap">
+            <svg width="100" height="100" viewBox="0 0 36 36" id="donut-svg">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2A2927" stroke-width="3.5"/>
+              <circle id="donut-conf" cx="18" cy="18" r="15.9" fill="none" stroke="#2D9E6B" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"/>
+              <circle id="donut-wait" cx="18" cy="18" r="15.9" fill="none" stroke="#D4A017" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"/>
+              <circle id="donut-ann" cx="18" cy="18" r="15.9" fill="none" stroke="#C24040" stroke-width="3.5" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-legend">
+              <div class="dl-item"><div class="dl-dot" style="background:var(--green)"></div>Confirmées<span class="dl-val" id="stat-pct-conf">0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:var(--amber)"></div>En attente<span class="dl-val" id="stat-pct-wait">0%</span></div>
+              <div class="dl-item"><div class="dl-dot" style="background:var(--red)"></div>Annulations<span class="dl-val" id="stat-pct-ann">0%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-panel">
+          <div class="chart-title">Créneaux les plus demandés</div>
+          <div id="slot-chart" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VUE SMS ===== -->
+    <div class="view" id="view-sms">
+      <div class="panel" style="max-width:600px">
+        <div class="panel-header"><span class="panel-title">SMS envoyés aujourd hui</span></div>
+        <div class="sms-list" id="sms-list">
+          <div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:0.85rem">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VUE CONTACT ===== -->
+    <div class="view" id="view-contact">
+      <div class="settings-grid" style="max-width:600px">
+        <div class="settings-card" style="grid-column:span 2">
+          <div class="settings-title">Support & SAV</div>
+          <div style="font-size:0.85rem;color:var(--text2);line-height:1.7;margin-bottom:1.25rem">
+            Notre equipe est disponible pour vous aider avec votre compte, vos reservations ou toute question technique.
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Email</span>
+            <a href="mailto:normresa@gmail.com" style="color:var(--accent2);font-size:0.85rem;text-decoration:none">normresa@gmail.com</a>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Horaires SAV</span>
+            <span class="setting-val">Lun - Ven, 9h00 - 18h00</span>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Temps de réponse</span>
+            <span class="setting-val">Sous 24h</span>
+          </div>
+          <div style="margin-top:1.25rem">
+            <a href="mailto:normresa@gmail.com" style="display:inline-flex;align-items:center;gap:8px;padding:0.75rem 1.5rem;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-size:0.88rem;font-weight:500">
+              Envoyer un message →
+            </a>
+          </div>
+        </div>
+        <div class="settings-card" style="grid-column:span 2">
+          <div class="settings-title">Questions fréquentes</div>
+          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <span style="font-size:0.85rem;font-weight:500;color:var(--text)">Comment modifier mes horaires ?</span>
+            <span style="font-size:0.82rem;color:var(--text2)">Allez dans Parametres et modifiez les horaires d'ouverture.</span>
+          </div>
+          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <span style="font-size:0.85rem;font-weight:500;color:var(--text)">Comment annuler une réservation ?</span>
+            <span style="font-size:0.82rem;color:var(--text2)">Dans la liste des reservations, cliquez sur "Annuler" a cote de la reservation.</span>
+          </div>
+          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+            <span style="font-size:0.85rem;font-weight:500;color:var(--text)">Comment partager ma page de réservation ?</span>
+            <span style="font-size:0.82rem;color:var(--text2)">Cliquez sur "Ma page publique" dans le menu pour acceder a votre lien unique.</span>
+          </div>
+          <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:4px;border-bottom:none">
+            <span style="font-size:0.85rem;font-weight:500;color:var(--text)">Comment résilier mon abonnement ?</span>
+            <span style="font-size:0.82rem;color:var(--text2)">Contactez-nous par email et nous procederons a la resiliation dans les 24h.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VUE SETTINGS ===== -->
+    <div class="view" id="view-settings">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <div class="settings-title">Mon restaurant</div>
+          <div class="setting-row"><span class="setting-label">Nom</span><input class="setting-input" id="settings-name" type="text" value="—" style="width:160px" /></div>
+          <div class="setting-row"><span class="setting-label">Ville</span><input class="setting-input" id="settings-city" type="text" value="—" style="width:160px" /></div>
+          <div class="setting-row"><span class="setting-label">Cuisine</span><input class="setting-input" id="settings-cuisine" type="text" value="—" style="width:160px" /></div>
+          <div class="setting-row"><span class="setting-label">Adresse</span><input class="setting-input" id="settings-address" type="text" value="—" style="width:160px" /></div>
+          <div class="setting-row"><span class="setting-label">Téléphone</span><input class="setting-input" id="settings-phone" type="text" value="—" style="width:160px" /></div>
+          <button onclick="saveRestaurantInfo()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Sauvegarder</button>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title">Créneaux & disponibilités</div>
+          <div class="setting-row">
+            <span class="setting-label">Type de service</span>
+            <select class="setting-input" id="settings-service-type" onchange="updateServiceTypeUI()" style="width:160px">
+              <option value="soir">Soir uniquement</option>
+              <option value="midi">Midi uniquement</option>
+              <option value="both">Midi et soir</option>
+              <option value="continu">Sans coupure (continu)</option>
+            </select>
+          </div>
+          <div id="st-soir-block">
+            <div style="font-size:0.75rem;color:var(--text3);margin-top:10px;margin-bottom:8px;font-weight:500" id="st-soir-label">Soir</div>
+            <div class="setting-row"><span class="setting-label">Heure ouverture</span><input class="setting-input" id="settings-open" type="time" value="19:00" /></div>
+            <div class="setting-row"><span class="setting-label">Dernière résa</span><input class="setting-input" id="settings-close" type="time" value="21:30" /></div>
+          </div>
+          <div id="st-midi-block" style="display:none">
+            <div style="font-size:0.75rem;color:var(--text3);margin-top:10px;margin-bottom:8px;font-weight:500">Midi</div>
+            <div class="setting-row"><span class="setting-label">Heure ouverture</span><input class="setting-input" id="settings-open-midi" type="time" value="12:00" /></div>
+            <div class="setting-row"><span class="setting-label">Dernière résa</span><input class="setting-input" id="settings-close-midi" type="time" value="13:30" /></div>
+          </div>
+          <div class="setting-row" style="margin-top:12px"><span class="setting-label">Intervalle créneaux</span>
+            <select class="setting-input" id="settings-slot" style="width:160px">
+              <option value="15">15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="45">45 minutes</option>
+              <option value="60">1 heure</option>
+              <option value="90">1h30</option>
+              <option value="120">2 heures</option>
+            </select>
+          </div>
+          <div class="setting-row"><span class="setting-label">Max couverts / créneau</span><input class="setting-input" id="settings-max-covers" type="number" min="1" value="30" style="width:80px" /></div>
+          <button onclick="saveCreneaux()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Sauvegarder</button>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title">Rappels SMS</div>
+          <div class="setting-row"><span class="setting-label">SMS de confirmation</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="setting-row"><span class="setting-label">Rappel 2h avant</span><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+        <div class="settings-card">
+          <div class="settings-title">Jours de fermeture</div>
+          <div id="closed-days-settings">
+            <div style="font-size:0.78rem;color:var(--text3);margin-bottom:10px">Modifiez les jours et services de fermeture.</div>
+            <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;margin-bottom:6px">
+              <span style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Jour</span>
+              <span style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;min-width:50px;text-align:center">Midi</span>
+              <span style="font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;min-width:50px;text-align:center">Soir</span>
+            </div>
+            <div id="closed-days-toggles"></div>
+            <button onclick="saveClosedDays()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Enregistrer les changements</button>
+          </div>
+        </div>
+        <div class="settings-card" style="grid-column:span 2">
+          <div class="settings-title">Gestion des tables</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-bottom:12px">Ajoutez ou supprimez les tables de votre restaurant.</div>
+          <div id="tables-list" style="margin-bottom:16px"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-bottom:4px">Libellé</div>
+              <input class="setting-input" id="new-table-label" type="text" placeholder="ex: T1" style="width:80px" />
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-bottom:4px">Places</div>
+              <input class="setting-input" id="new-table-covers" type="number" min="1" value="2" style="width:70px" />
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--text3);margin-bottom:4px">Zone</div>
+              <select class="setting-input" id="new-table-zone" style="width:110px">
+                <option value="salle">Salle</option>
+                <option value="terrasse">Terrasse</option>
+                <option value="bar">Bar</option>
+              </select>
+            </div>
+            <button onclick="addTable()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;height:34px">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL NOUVELLE RÉSA -->
+<div class="modal-overlay" id="add-modal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-h">
+      <span class="modal-title">Nouvelle réservation</span>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <label class="field-label">Prénom & Nom</label>
+        <input class="field" type="text" id="add-name" placeholder="Marie Dupont" />
+      </div>
+      <div>
+        <label class="field-label">Téléphone</label>
+        <input class="field" type="tel" id="add-phone" placeholder="06 00 00 00 00" />
+      </div>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <label class="field-label">Date</label>
+        <input class="field" type="date" id="add-date" />
+      </div>
+      <div style="display:none"></div>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <label class="field-label">Heure</label>
+        <select class="field" id="add-time">
+          <option>19h00</option><option>19h30</option><option selected>20h00</option>
+          <option>20h30</option><option>21h00</option><option>21h30</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Nombre de couverts</label>
+        <select class="field" id="add-covers">
+          <option>1</option><option selected>2</option><option>3</option>
+          <option>4</option><option>5</option><option>6</option><option>8</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-2col">
+      <div>
+        <label class="field-label">Table</label>
+        <select class="field" id="add-table">
+          <option>T3</option><option>T6</option><option>T8</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Statut</label>
+        <select class="field" id="add-status">
+          <option value="conf">Confirmée</option>
+          <option value="wait">En attente</option>
+        </select>
+      </div>
+    </div>
+    <label class="field-label">Note (allergies, occasion...)</label>
+    <input class="field" type="text" id="add-note" placeholder="Ex : anniversaire, végétarien..." />
+    <button class="btn-submit" onclick="addResa()">Ajouter la réservation</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- SUPABASE ----
+// ---- AUTH CHECK ----
+const sbSession = localStorage.getItem("sb_session");
+if (!sbSession) { window.location.href = "login.html"; }
+const sbUser = sbSession ? JSON.parse(sbSession) : null;
+
+const SUPABASE_URL = 'https://tagpmmmclljaqahldkys.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
+let sbAuthToken = (sbUser && sbUser.token) ? sbUser.token : SUPABASE_KEY;
+const sbHeaders = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + sbAuthToken
+};
+// Lectures : JWT utilisateur (RLS) — Écritures : clé anon (compatible page publique)
+const writeHeaders = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY
+};
+
+async function refreshTokenIfNeeded() {
+  try {
+    var session = JSON.parse(localStorage.getItem("sb_session") || "{}");
+    var expiresAt = session.expires_at || 0;
+    var refreshToken = session.refresh_token;
+    if (!refreshToken || Date.now() < expiresAt - 300000) return;
+    var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (!res.ok) return;
+    var data = await res.json();
+    if (data.access_token) {
+      session.token = data.access_token;
+      if (data.refresh_token) session.refresh_token = data.refresh_token;
+      session.expires_at = Date.now() + (data.expires_in || 3600) * 1000;
+      if (data.user) {
+        var oldMeta = session.user && session.user.user_metadata;
+        session.user = data.user;
+        // Préserver les user_metadata si le refresh ne les retourne pas
+        if (oldMeta && !session.user.user_metadata) session.user.user_metadata = oldMeta;
+      }
+      localStorage.setItem("sb_session", JSON.stringify(session));
+      sbAuthToken = data.access_token;
+      sbHeaders['Authorization'] = 'Bearer ' + data.access_token;
+    }
+  } catch(e) {}
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function getDateStr(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+async function loadReservations() {
+  await refreshTokenIfNeeded();
+  const date = getDateStr(dayOffset);
+  const tbody = document.getElementById('resa-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Chargement...</td></tr>';
+  var restoFilter;
+  if (restaurantData && restaurantData.id) {
+    restoFilter = '&restaurant_id=eq.' + restaurantData.id;
+  } else {
+    const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
+    restoFilter = restoName ? '&restaurant_name=ilike.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  }
+  const resaUrl = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`;
+  console.error('[DIAG] restaurantData:', restaurantData ? restaurantData.id : 'NULL', '| URL:', resaUrl);
+  const res = await fetch(resaUrl, { headers: sbHeaders });
+  if (!res.ok) {
+    const errTxt = await res.text();
+    console.error('[DIAG] fetch erreur:', res.status, errTxt);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement (' + res.status + ')</td></tr>';
+    return;
+  }
+  const data = await res.json();
+  console.error('[DIAG] reservations reçues:', data ? data.length : 0, '| date:', date, '| filtre:', restoFilter);
+  reservations = data.map(r => ({
+    id: r.id,
+    time: r.time || '—',
+    name: r.guest_name || '—',
+    phone: r.guest_phone || '',
+    covers: r.covers || 1,
+    table: r.table || '—',
+    table_id: r.table_id || null,
+    status: r.status === 'confirmed' ? 'conf' : r.status === 'cancelled' ? 'ann' : r.status || 'conf',
+    note: r.note || ''
+  }));
+  renderTable(currentFilter);
+  renderTimeline();
+  renderFloor();
+  const active = reservations.filter(r => r.status !== 'ann');
+  const waiting = reservations.filter(r => r.status === 'wait');
+  const cancelled = reservations.filter(r => r.status === 'ann');
+  const totalCovers = active.reduce(function(s, r) { return s + (r.covers || 0); }, 0);
+  document.getElementById('stat-resa').textContent = active.length;
+  try {
+    document.getElementById('badge-today').textContent = active.length;
+    var trendResa = document.getElementById('trend-resa');
+    var trendCovers = document.getElementById('trend-covers');
+    var trendAnn = document.getElementById('trend-ann');
+    if (trendResa) { trendResa.textContent = active.length > 0 ? active.length + ' ce soir' : '—'; trendResa.className = 'stat-trend ' + (active.length > 0 ? 'trend-up' : 'trend-neutral'); }
+    if (trendCovers) { var pct = totalCovers > 0 ? Math.round(totalCovers / (restaurantData && restaurantData.max_covers || 30) * 100) : 0; trendCovers.textContent = pct > 0 ? pct + '%' : '—'; trendCovers.className = 'stat-trend ' + (pct > 70 ? 'trend-up' : 'trend-neutral'); }
+    if (trendAnn) { trendAnn.textContent = cancelled.length > 0 ? '-' + cancelled.length : '—'; trendAnn.className = 'stat-trend ' + (cancelled.length > 0 ? 'trend-down' : 'trend-neutral'); }
+  } catch(e) {}
+  try {
+    document.querySelector('.stat-card:nth-child(2) .stat-val').textContent = totalCovers;
+    document.querySelector('.stat-card:nth-child(3) .stat-val').textContent = waiting.length;
+    document.querySelector('.stat-card:nth-child(4) .stat-val').textContent = cancelled.length;
+  } catch(e) {}
+}
+
+async function updateSupabaseStatus(id, status) {
+  await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ status: status })
+  });
+}
+
+async function insertSupabaseResa(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations`, {
+    method: 'POST',
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+// ---- DATA ----
+let reservations = [];
+
+const statusMap = {
+  conf:  { label:'Confirmée',   cls:'s-conf' },
+  wait:  { label:'En attente',  cls:'s-wait' },
+  arr:   { label:'Arrivé',      cls:'s-arr'  },
+  ann:   { label:'Annulée',     cls:'s-ann'  },
+  done:  { label:'Terminée',    cls:'s-done' },
+};
+
+let currentFilter = 'all';
+
+// ---- DATE ----
+let dayOffset = 0;
+const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+
+function updateDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  const str = days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  document.getElementById('topbar-date').textContent = str;
+  document.getElementById('day-label').textContent = dayOffset === 0 ? "Aujourd hui" : dayOffset === 1 ? 'Demain' : dayOffset === -1 ? 'Hier' : str;
+}
+function changeDay(d) { dayOffset += d; updateDate(); loadReservations(); }
+updateDate();
+
+// ---- RENDER TABLE ----
+function renderTable(filter) {
+  const tbody = document.getElementById('resa-tbody');
+  const rows = filter === 'all' ? reservations : reservations.filter(r => r.status === filter || (filter==='conf' && r.status==='arr'));
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune reservation pour ce jour<br><small style="font-size:0.7rem;opacity:0.6">date:' + getDateStr(dayOffset) + ' | resto:' + (restaurantData ? restaurantData.id : 'null') + '</small></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const st = statusMap[r.status];
+    const dots = Array.from({length:6}, (_,i) => `<div class="cover-dot ${i<r.covers?'filled':''}"></div>`).join('');
+    return `<tr>
+      <td><span class="time-badge">${r.time}</span></td>
+      <td><div class="guest-name">${r.name}</div>${r.note?`<div class="guest-note">${r.note}</div>`:''}</td>
+      <td><div class="covers">${dots}<span style="margin-left:4px;color:var(--text2)">${r.covers}</span></div></td>
+      <td>${r.table}</td>
+      <td><span class="status-pill ${st.cls}">${st.label}</span></td>
+      <td><div class="row-actions">
+        <button class="row-btn" onclick="markArrived(${r.id})">✓ Arrivé</button>
+        <button class="row-btn danger" onclick="cancelResa(${r.id})">Annuler</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+renderTable('all');
+
+function filterResa(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable(f);
+}
+
+function markArrived(id) {
+  const r = reservations.find(x => x.id===id);
+  if (r) { r.status = "arr"; renderTable(currentFilter); showToast("Arrive : " + r.name); updateSupabaseStatus(id, "arr"); }
+}
+function cancelResa(id) {
+  const r = reservations.find(x => x.id===id);
+  if (r && confirm('Annuler la réservation de ' + r.name + ' ?')) {
+    r.status = "ann"; renderTable(currentFilter); showToast("Reservation annulee"); updateSupabaseStatus(id, "cancelled");
+  }
+}
+
+// ---- TIMELINE ----
+function renderTimeline() {
+  const allTimes = reservations.filter(r => r.status !== 'ann').map(r => r.time);
+  const uniqueTimes = [...new Set(allTimes)].sort();
+  const slots = uniqueTimes.length > 0 ? uniqueTimes : ['—'];
+  const counts = slots.map(s => reservations.filter(r => r.time === s && r.status !== 'ann').length);
+  const max = Math.max(...counts, 1);
+  const wrap = document.getElementById('timeline-wrap');
+  if (reservations.length === 0) { wrap.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text3);font-size:0.82rem">Aucune réservation aujourd hui</div>'; return; }
+  wrap.innerHTML = slots.map((s,i) => {
+    const pct = Math.round(counts[i]/max*100);
+    const cls = pct > 70 ? 'peak' : pct < 20 ? 'low' : '';
+    return '<div class="timeline-bar-wrap"><div class="tl-header"><span class="tl-time">'+s+'</span><span class="tl-count">'+counts[i]+' résa</span></div><div class="tl-bar-bg"><div class="tl-bar '+cls+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+}
+renderTimeline();
+
+// ---- WEEK CHART ----
+async function renderWeekChart() {
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
+  const days7 = [];
+  const dayLabels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    days7.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  }
+  const counts = await Promise.all(days7.map(async function(date) {
+    const res = await fetch(SUPABASE_URL+'/rest/v1/reservations?date=eq.'+date+filter+'&select=id', { headers: sbHeaders });
+    const data = await res.json();
+    return data ? data.length : 0;
+  }));
+  const max = Math.max(...counts, 1);
+  document.getElementById('week-chart').innerHTML = counts.map((val,i) => {
+    const isToday = i === 6;
+    return '<div class="bar-group"><span class="bar-val">'+val+'</span><div class="bar '+(isToday?'today':'')+'" style="height:'+Math.round(val/max*90)+'px" title="'+val+' réservations"></div><span class="bar-label">'+dayLabels[(new Date(days7[i]).getDay()+6)%7]+'</span></div>';
+  }).join('');
+  // Update donut with today stats
+  updateDonut();
+  renderSlotChart();
+}
+renderWeekChart();
+
+function updateDonut() {
+  const total = reservations.length || 1;
+  const conf = reservations.filter(r => r.status === 'conf' || r.status === 'arr').length;
+  const wait = reservations.filter(r => r.status === 'wait').length;
+  const ann = reservations.filter(r => r.status === 'ann').length;
+  const pctConf = Math.round(conf/total*100);
+  const pctWait = Math.round(wait/total*100);
+  const pctAnn = Math.round(ann/total*100);
+  document.getElementById('stat-pct-conf').textContent = pctConf+'%';
+  document.getElementById('stat-pct-wait').textContent = pctWait+'%';
+  document.getElementById('stat-pct-ann').textContent = pctAnn+'%';
+  const confEl = document.getElementById('donut-conf');
+  const waitEl = document.getElementById('donut-wait');
+  const annEl = document.getElementById('donut-ann');
+  if (confEl) { confEl.setAttribute('stroke-dasharray', pctConf+' '+(100-pctConf)); confEl.setAttribute('stroke-dashoffset', '25'); }
+  if (waitEl) { waitEl.setAttribute('stroke-dasharray', pctWait+' '+(100-pctWait)); waitEl.setAttribute('stroke-dashoffset', String(25-pctConf)); }
+  if (annEl) { annEl.setAttribute('stroke-dasharray', pctAnn+' '+(100-pctAnn)); annEl.setAttribute('stroke-dashoffset', String(25-pctConf-pctWait)); }
+}
+
+// ---- SLOT CHART ----
+function renderSlotChart() {
+  const timeCounts = {};
+  reservations.filter(r => r.status !== 'ann').forEach(r => { timeCounts[r.time] = (timeCounts[r.time] || 0) + 1; });
+  const sorted = Object.entries(timeCounts).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const maxVal = sorted.length > 0 ? sorted[0][1] : 1;
+  if (sorted.length === 0) { document.getElementById('slot-chart').innerHTML = '<div style="color:var(--text3);font-size:0.82rem;padding:0.5rem 0">Aucune donnée</div>'; return; }
+  document.getElementById('slot-chart').innerHTML = sorted.map(function(entry) {
+    const pct = Math.round(entry[1]/maxVal*100);
+    return '<div><div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text2);margin-bottom:4px"><span>'+entry[0]+'</span><span>'+entry[1]+' résa</span></div><div style="height:6px;background:var(--surface2);border-radius:3px"><div style="width:'+pct+'%;height:100%;background:var(--accent);border-radius:3px"></div></div></div>';
+  }).join('');
+}
+
+// ---- SMS LOAD ----
+async function loadSMS() {
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
+  const today = getDateStr(0);
+  const res = await fetch(SUPABASE_URL+'/rest/v1/reservations?date=eq.'+today+filter+'&order=created_at.desc', { headers: sbHeaders });
+  const data = await res.json();
+  const list = document.getElementById('sms-list');
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--text3);font-size:0.85rem">Aucun SMS envoyé aujourd hui</div>';
+    return;
+  }
+  list.innerHTML = data.map(function(r) {
+    const time = r.created_at ? new Date(r.created_at).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : '—';
+    const msg = 'Reservation confirmee au ' + r.restaurant_name + ' le ' + r.date + ' a ' + r.time + ' pour ' + r.covers + ' personnes.';
+    return '<div class="sms-item"><span class="sms-icon">✅</span><div><div class="sms-name">'+r.guest_name+'</div><div class="sms-msg">'+msg+'</div></div><span class="sms-time">'+time+'</span></div>';
+  }).join('');
+}
+
+// ---- NAV ----
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const titles = {today:'Reservations du jour', stats:'Statistiques', sms:'SMS envoyes', settings:'Parametres', contact:'Contact & SAV'};
+  document.getElementById('topbar-title').textContent = titles[v] || '';
+  document.querySelector('.date-nav').style.display = v==='today' ? 'flex' : 'none';
+  document.querySelector('.btn-add').style.display = v==='today' ? 'flex' : 'none';
+  if (v === 'sms') loadSMS();
+  if (v === 'stats') renderWeekChart();
+}
+
+// ---- MODAL ADD ----
+function openModal() {
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('add-date').value = getDateStr(dayOffset);
+}
+function closeModal() { document.getElementById('add-modal').classList.remove('open'); }
+function closeModalOutside(e) { if(e.target===document.getElementById('add-modal')) closeModal(); }
+
+async function addResa() {
+  const name = document.getElementById('add-name').value.trim();
+  const phone = document.getElementById('add-phone').value.trim();
+  if (!name || !phone) { alert('Merci de renseigner le nom et le téléphone.'); return; }
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = 'Enregistrement...'; btn.disabled = true;
+  const ok = await insertSupabaseResa({
+    guest_name: name,
+    guest_phone: phone,
+    time: document.getElementById('add-time').value,
+    covers: parseInt(document.getElementById('add-covers').value),
+    note: document.getElementById('add-note').value,
+    status: document.getElementById('add-status').value === 'conf' ? 'confirmed' : 'wait',
+    date: document.getElementById('add-date').value || getDateStr(dayOffset),
+    restaurant_name: (restaurantData && restaurantData.name) ? restaurantData.name : (sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : 'Mon Restaurant'),
+    restaurant_id: restaurantData ? restaurantData.id : null
+  });
+  btn.textContent = 'Ajouter la réservation'; btn.disabled = false;
+  if (ok) {
+    const savedDate = document.getElementById('add-date').value;
+    if (savedDate) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const [ry, rm, rd] = savedDate.split('-').map(Number);
+      const resaDate = new Date(ry, rm-1, rd);
+      dayOffset = Math.round((resaDate - today) / 86400000);
+      updateDate();
+    }
+    closeModal();
+    showToast('✓ Réservation ajoutée pour ' + name);
+    document.getElementById('add-name').value='';
+    document.getElementById('add-phone').value='';
+    document.getElementById('add-note').value='';
+    await loadReservations();
+  } else {
+    alert('Erreur enregistrement.');
+  }
+}
+
+// ---- TABLES DATA ----
+let tablesData = { salle: [], terrasse: [], bar: [] };
+let currentFloorZone = 'salle';
+let restaurantData = null;
+
+async function loadRestaurantData() {
+  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
+  if (!restoName) return;
+
+  var data = null;
+  // Ignore les valeurs corrompues "undefined"/"null" stockées par erreur
+  var _validId = function(v) { return (v && v !== 'undefined' && v !== 'null') ? v : null; };
+
+  // Essai 1 : chercher par clé stable (user UID) — le plus fiable, pas d'encoding
+  if (sbUser && sbUser.user) {
+    var stableId = _validId(localStorage.getItem('resto_id_uid_' + sbUser.user.id));
+    if (stableId) {
+      var rs1 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + stableId, { headers: sbHeaders });
+      if (rs1.ok) { var d1 = await rs1.json(); if (d1 && d1.length > 0) data = d1; }
+    }
+  }
+
+  // Essai 2 : chercher par ID en cache (clé par nom metadata)
+  if (!data || data.length === 0) {
+    var cachedId = _validId(localStorage.getItem("resto_id_" + encodeURIComponent(restoName)));
+    if (cachedId) {
+      var rs2 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + cachedId, { headers: sbHeaders });
+      if (rs2.ok) { var d2 = await rs2.json(); if (d2 && d2.length > 0) data = d2; }
+    }
+  }
+
+  // Essai 3 : chercher par nom insensible à la casse (dernier recours)
+  if (!data || data.length === 0) {
+    var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
+    if (rs3.ok) { var d3 = await rs3.json(); if (d3 && d3.length > 0) data = d3; }
+  }
+
+  // Essai 4 : chercher par slug dérivé du nom (si le nom a changé légèrement)
+  if (!data || data.length === 0) {
+    var slugFallback = restoName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (slugFallback) {
+      var rs4 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?slug=ilike.' + encodeURIComponent(slugFallback), { headers: sbHeaders });
+      if (rs4.ok) { var d4 = await rs4.json(); if (d4 && d4.length > 0) data = d4; }
+    }
+  }
+
+  if (data && data.length > 0) {
+    restaurantData = data[0];
+    // Cache l'ID par nom de restaurant (clé spécifique à ce restaurant)
+    localStorage.setItem("resto_id_" + encodeURIComponent(restoName), restaurantData.id);
+    updateSettingsUI();
+  }
+
+  // Load tables
+  const restoId = restaurantData ? restaurantData.id : null;
+  if (restoId) {
+    const tabRes = await fetch(SUPABASE_URL + '/rest/v1/tables?restaurant_id=eq.' + restoId + '&order=id.asc', { headers: sbHeaders });
+    const tabData = await tabRes.json();
+    if (tabData && tabData.length > 0) {
+      tablesData = { salle: [], terrasse: [], bar: [] };
+      tabData.forEach(t => {
+        const zone = t.zone || 'salle';
+        if (tablesData[zone]) tablesData[zone].push({ id: t.id, covers: t.covers, label: t.label });
+      });
+    } else {
+      tablesData = { salle: [], terrasse: [], bar: [] };
+      // Vérifier s'il y a des tables en attente depuis l'onboarding
+      var pendingSlug = localStorage.getItem("pending_tables_slug");
+      var pendingTablesStr = localStorage.getItem("pending_tables");
+      if (pendingSlug && pendingTablesStr && restaurantData && restaurantData.slug === pendingSlug) {
+        try {
+          var pendingTables = JSON.parse(pendingTablesStr);
+          var insertRes = await fetch(SUPABASE_URL + '/rest/v1/tables', {
+            method: 'POST',
+            headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
+            body: JSON.stringify(pendingTables.map(function(t) { return { restaurant_id: restoId, zone: t.zone, covers: t.covers, label: t.label }; }))
+          });
+          if (insertRes.ok) {
+            localStorage.removeItem("pending_tables_slug");
+            localStorage.removeItem("pending_tables");
+            var tabRes2 = await fetch(SUPABASE_URL + '/rest/v1/tables?restaurant_id=eq.' + restoId + '&order=id.asc', { headers: sbHeaders });
+            var tabData2 = await tabRes2.json();
+            if (tabData2 && tabData2.length > 0) {
+              tabData2.forEach(function(t) {
+                var zone = t.zone || 'salle';
+                if (tablesData[zone]) tablesData[zone].push({ id: t.id, covers: t.covers, label: t.label });
+              });
+            }
+          }
+        } catch(e) { console.error("Erreur insertion tables en attente:", e); }
+      }
+    }
+  }
+  renderFloor();
+  renderTablesList();
+}
+
+function renderTablesList() {
+  var allTables = Object.entries(tablesData).flatMap(function([zone, tables]) {
+    return tables.map(function(t) { return Object.assign({}, t, { zone: zone }); });
+  });
+  var el = document.getElementById('tables-list');
+  if (!el) return;
+  if (allTables.length === 0) {
+    el.innerHTML = '<div style="font-size:0.82rem;color:var(--text3);padding:8px 0">Aucune table configurée.</div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">' +
+    allTables.map(function(t) {
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px">' +
+        '<span style="font-size:0.82rem;font-weight:500">' + t.label + '</span>' +
+        '<span style="font-size:0.75rem;color:var(--text3)">' + t.covers + 'p · ' + t.zone + '</span>' +
+        '<button onclick="deleteTable(' + t.id + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:1rem;padding:0 2px" title="Supprimer">×</button>' +
+      '</div>';
+    }).join('') + '</div>';
+}
+
+function updateServiceTypeUI() {
+  var st = document.getElementById('settings-service-type');
+  if (!st) return;
+  var val = st.value;
+  var soirBlock = document.getElementById('st-soir-block');
+  var midiBlock = document.getElementById('st-midi-block');
+  var soirLabel = document.getElementById('st-soir-label');
+  if (val === 'soir') {
+    soirBlock.style.display = ''; midiBlock.style.display = 'none';
+    if (soirLabel) soirLabel.textContent = 'Soir';
+  } else if (val === 'midi') {
+    soirBlock.style.display = 'none'; midiBlock.style.display = '';
+  } else if (val === 'both') {
+    soirBlock.style.display = ''; midiBlock.style.display = '';
+    if (soirLabel) soirLabel.textContent = 'Soir';
+  } else if (val === 'continu') {
+    soirBlock.style.display = ''; midiBlock.style.display = 'none';
+    if (soirLabel) soirLabel.textContent = 'Horaires continues';
+  }
+}
+window.updateServiceTypeUI = updateServiceTypeUI;
+
+function updateSettingsUI() {
+  if (!restaurantData) return;
+
+  // Mettre à jour la sidebar avec le nom réel depuis Supabase
+  var realName = restaurantData.name;
+  if (realName) {
+    var nameEl = document.getElementById('user-name');
+    if (nameEl) nameEl.textContent = realName;
+    document.querySelectorAll('.resto-name').forEach(function(el) { el.textContent = realName; });
+    var words = realName.trim().split(/\s+/);
+    var initials = words.length >= 2 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
+    var avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) avatarEl.textContent = initials.toUpperCase();
+    // Stocker sous clé stable (user UID) pour retrouver le restaurant même si le nom change
+    if (sbUser && sbUser.user) {
+      localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
+    }
+  }
+
+  var fields = [
+    ['settings-name', restaurantData.name],
+    ['settings-city', restaurantData.city],
+    ['settings-cuisine', restaurantData.cuisine],
+    ['settings-address', restaurantData.address],
+    ['settings-phone', restaurantData.phone],
+    ['settings-open', restaurantData.open_time],
+    ['settings-close', restaurantData.close_time],
+  ];
+  fields.forEach(function(f) {
+    var el = document.getElementById(f[0]);
+    if (el && f[1]) el.value = f[1];
+  });
+  var slotEl = document.getElementById('settings-slot');
+  if (slotEl && restaurantData.slot_duration) slotEl.value = restaurantData.slot_duration;
+  var maxEl = document.getElementById('settings-max-covers');
+  if (maxEl && restaurantData.max_covers) maxEl.value = restaurantData.max_covers;
+  var openMidiEl = document.getElementById('settings-open-midi');
+  if (openMidiEl && restaurantData.open_time_midi) openMidiEl.value = restaurantData.open_time_midi;
+  var closeMidiEl = document.getElementById('settings-close-midi');
+  if (closeMidiEl && restaurantData.close_time_midi) closeMidiEl.value = restaurantData.close_time_midi;
+
+  // Service type : inférer si la colonne n'existe pas encore
+  var st = restaurantData.service_type ||
+    (restaurantData.open_time_midi && restaurantData.open_time ? 'both' :
+     restaurantData.open_time_midi ? 'midi' : 'soir');
+  var stEl = document.getElementById('settings-service-type');
+  if (stEl) { stEl.value = st; updateServiceTypeUI(); }
+
+  renderTablesList();
+
+  // Render closed days toggles
+  var togglesEl = document.getElementById("closed-days-toggles");
+  if (togglesEl) {
+    var closedDays = restaurantData.closed_days || {};
+    var days = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
+    var daysDisplay = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+    togglesEl.innerHTML = days.map(function(day, i) {
+      var info = closedDays[day] || closedDays[daysDisplay[i]] || {};
+      var midiChecked = info.midi ? "checked" : "";
+      var soirChecked = info.soir ? "checked" : "";
+      return '<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">' +
+        '<span style="font-size:0.82rem;color:var(--text2)">' + daysDisplay[i] + '</span>' +
+        '<div style="min-width:50px;text-align:center"><input type="checkbox" id="cd-' + day + '-midi" ' + midiChecked + ' style="accent-color:var(--accent);width:14px;height:14px"></div>' +
+        '<div style="min-width:50px;text-align:center"><input type="checkbox" id="cd-' + day + '-soir" ' + soirChecked + ' style="accent-color:var(--accent);width:14px;height:14px"></div>' +
+      '</div>';
+    }).join("");
+  }
+}
+
+function switchFloorZone(zone, btn) {
+  currentFloorZone = zone;
+  document.querySelectorAll('.panel-actions .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderFloor();
+}
+
+function renderFloor() {
+  const tables = tablesData[currentFloorZone];
+  const reservedTableIds = reservations.filter(r => r.status !== 'ann' && r.table_id).map(r => r.table_id);
+  const arrivedTableIds = reservations.filter(r => r.status === 'arr' && r.table_id).map(r => r.table_id);
+  const cols = currentFloorZone === 'bar' ? 3 : 4;
+  document.getElementById('floor-grid').style.gridTemplateColumns = 'repeat('+cols+',1fr)';
+  document.getElementById('floor-grid').innerHTML = tables.map(t => {
+    let cls = 't-libre';
+    if (arrivedTableIds.includes(t.id)) cls = 't-occ';
+    else if (reservedTableIds.includes(t.id)) cls = 't-res';
+    const resa = reservations.find(r => r.table_id === t.id && r.status !== 'ann');
+    const tooltip = resa ? resa.name + ' ' + resa.time : '';
+    return '<div class="table-cell '+cls+'" title="'+tooltip+'" onclick="assignTable('+t.id+')"><div class="table-num">'+t.label+'</div><div class="table-covers">'+t.covers+'p</div></div>';
+  }).join('');
+}
+
+function assignTable(tableId) {
+  const table = Object.values(tablesData).flat().find(t => t.id === tableId);
+  const resa = reservations.find(r => r.table_id === tableId && r.status !== 'ann');
+  if (resa) {
+    if (confirm('Table '+table.label+' — '+resa.name+' ('+resa.time+'). Libérer la table ?')) {
+      updateSupabaseStatus(resa.id, 'confirmed');
+      resa.table_id = null;
+      renderFloor();
+    }
+  } else {
+    const unassigned = reservations.filter(r => r.status !== 'ann' && !r.table_id && r.covers <= table.covers);
+    if (unassigned.length === 0) { showToast('Aucune réservation à assigner'); return; }
+    const names = unassigned.map((r,i) => (i+1)+'. '+r.name+' ('+r.covers+'p - '+r.time+')').join('\n');
+    const choice = prompt('Assigner quelle réservation à '+table.label+' ?\n\n'+names+'\n\nEntrez le numéro :');
+    if (choice && unassigned[parseInt(choice)-1]) {
+      const r = unassigned[parseInt(choice)-1];
+      r.table_id = tableId;
+      fetch(SUPABASE_URL+'/rest/v1/reservations?id=eq.'+r.id, {
+        method: 'PATCH',
+        headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify({ table_id: tableId })
+      });
+      renderFloor();
+      showToast('Table '+table.label+' assignée à '+r.name);
+    }
+  }
+}
+
+// ---- INIT ----
+function initClosedDaysUI() {
+  var togglesEl = document.getElementById("closed-days-toggles");
+  if (!togglesEl) return;
+  var days = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
+  var daysDisplay = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+  togglesEl.innerHTML = days.map(function(day, i) {
+    return '<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">' +
+      '<span style="font-size:0.82rem;color:var(--text2)">' + daysDisplay[i] + '</span>' +
+      '<div style="min-width:50px;text-align:center"><input type="checkbox" id="cd-' + day + '-midi" style="accent-color:var(--accent);width:14px;height:14px"></div>' +
+      '<div style="min-width:50px;text-align:center"><input type="checkbox" id="cd-' + day + '-soir" style="accent-color:var(--accent);width:14px;height:14px"></div>' +
+    '</div>';
+  }).join("");
+}
+
+async function init() {
+  initClosedDaysUI(); // Afficher les cases à cocher immédiatement, avant le chargement
+  await loadRestaurantData();
+  await loadReservations();
+  // Rafraîchissement automatique toutes les 15 secondes
+  setInterval(loadReservations, 15000);
+}
+init();
+
+// ---- AUTH ----
+function logout() {
+  localStorage.removeItem("sb_session");
+  window.location.href = "login.html";
+}
+function openPublicPage() {
+  const slug = restaurantData ? restaurantData.slug : null;
+  if (slug) {
+    window.open("restaurant.html?slug=" + slug, "_blank");
+  } else {
+    window.open("reservatable-mvp.html", "_blank");
+  }
+}
+if (sbUser && sbUser.user && sbUser.user.user_metadata && sbUser.user.user_metadata.restaurant_name) {
+  var restoName = sbUser.user.user_metadata.restaurant_name;
+  document.getElementById("user-name").textContent = restoName;
+  document.querySelector(".resto-name").textContent = restoName;
+  var words = restoName.trim().split(" ");
+  var initials = words.length >= 2 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
+  document.getElementById("user-avatar").textContent = initials.toUpperCase();
+}
+
+// ---- SAVE RESTAURANT INFO ----
+async function saveRestaurantInfo() {
+  await refreshTokenIfNeeded();
+  if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
+  var name = document.getElementById('settings-name').value.trim();
+  var city = document.getElementById('settings-city').value.trim();
+  if (!name || name === '—' || !city || city === '—') {
+    showToast('Le nom et la ville ne peuvent pas être vides');
+    return;
+  }
+  var payload = {
+    name: name,
+    city: city,
+    cuisine: document.getElementById('settings-cuisine').value.trim(),
+    address: document.getElementById('settings-address').value.trim(),
+    phone: document.getElementById('settings-phone').value.trim(),
+  };
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
+  });
+  if (res.ok) {
+    var oldName = restaurantData.name;
+    Object.assign(restaurantData, payload);
+    // Mettre à jour la sidebar immédiatement
+    var newName = payload.name;
+    var nameEl = document.getElementById('user-name');
+    if (nameEl) nameEl.textContent = newName;
+    document.querySelectorAll('.resto-name').forEach(function(el) { el.textContent = newName; });
+    var words = newName.trim().split(/\s+/);
+    var initials = words.length >= 2 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
+    var avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) avatarEl.textContent = initials.toUpperCase();
+    // Mettre à jour le cache localStorage avec le nouveau nom (garder aussi l'ancien)
+    localStorage.setItem('resto_id_' + encodeURIComponent(newName), restaurantData.id);
+    if (sbUser && sbUser.user) {
+      localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
+    }
+    showToast('Informations sauvegardées !');
+  } else {
+    res.json().then(function(t) {
+      console.error('saveRestaurantInfo error', res.status, t);
+      var msg = (t && t.error) ? String(t.error).substring(0, 120) : ('HTTP ' + res.status);
+      showToast('Erreur (' + res.status + '): ' + msg);
+    }).catch(function() { showToast('Erreur HTTP ' + res.status); });
+  }
+}
+
+// ---- SAVE CRENEAUX ----
+async function saveCreneaux() {
+  await refreshTokenIfNeeded();
+  if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
+  var serviceType = document.getElementById('settings-service-type').value;
+  var slotVal = parseInt(document.getElementById('settings-slot').value);
+  var maxVal  = parseInt(document.getElementById('settings-max-covers').value);
+  var payload = {
+    service_type: serviceType,
+    slot_duration: isNaN(slotVal) ? 30 : slotVal,
+    max_covers:    isNaN(maxVal)  ? 20 : maxVal,
+  };
+  if (serviceType === 'soir' || serviceType === 'continu') {
+    payload.open_time  = document.getElementById('settings-open').value  || '19:00';
+    payload.close_time = document.getElementById('settings-close').value || '22:00';
+  } else if (serviceType === 'midi') {
+    payload.open_time_midi  = document.getElementById('settings-open-midi').value  || '12:00';
+    payload.close_time_midi = document.getElementById('settings-close-midi').value || '14:00';
+  } else if (serviceType === 'both') {
+    payload.open_time       = document.getElementById('settings-open').value       || '19:00';
+    payload.close_time      = document.getElementById('settings-close').value      || '22:00';
+    payload.open_time_midi  = document.getElementById('settings-open-midi').value  || '12:00';
+    payload.close_time_midi = document.getElementById('settings-close-midi').value || '14:00';
+  }
+  console.log('saveCreneaux payload:', JSON.stringify(payload), 'restaurantId:', restaurantData.id);
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
+  });
+  if (res.ok) { Object.assign(restaurantData, payload); showToast('Créneaux sauvegardés !'); }
+  else {
+    res.json().then(function(t) {
+      console.error('saveCreneaux error', res.status, t);
+      var msg = (t && t.error) ? String(t.error).substring(0, 120) : ('HTTP ' + res.status);
+      showToast('Erreur (' + res.status + '): ' + msg);
+    }).catch(function() { showToast('Erreur HTTP ' + res.status); });
+  }
+}
+
+// ---- TABLE MANAGEMENT ----
+async function addTable() {
+  if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
+  var label = document.getElementById('new-table-label').value.trim();
+  var covers = parseInt(document.getElementById('new-table-covers').value);
+  var zone = document.getElementById('new-table-zone').value;
+  if (!label) { showToast('Entrez un libellé pour la table'); return; }
+  var res = await fetch(SUPABASE_URL + '/rest/v1/tables', {
+    method: 'POST',
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=representation' }),
+    body: JSON.stringify({ restaurant_id: restaurantData.id, label: label, covers: covers, zone: zone })
+  });
+  if (res.ok) {
+    document.getElementById('new-table-label').value = '';
+    await loadRestaurantData();
+    showToast('Table ' + label + ' ajoutée !');
+  } else {
+    var errText = await res.text();
+    showToast('Erreur ' + res.status + ' : ' + errText.substring(0, 80));
+  }
+}
+
+async function deleteTable(tableId) {
+  if (!confirm('Supprimer cette table ?')) return;
+  var res = await fetch(SUPABASE_URL + '/rest/v1/tables?id=eq.' + tableId, {
+    method: 'DELETE',
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' })
+  });
+  if (res.ok) { await loadRestaurantData(); showToast('Table supprimée'); }
+  else showToast('Erreur lors de la suppression');
+}
+
+// ---- SAVE CLOSED DAYS ----
+async function saveClosedDays() {
+  await refreshTokenIfNeeded();
+  if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
+  var days = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
+  var result = {};
+  days.forEach(function(day) {
+    var midi = document.getElementById("cd-" + day + "-midi");
+    var soir = document.getElementById("cd-" + day + "-soir");
+    if ((midi && midi.checked) || (soir && soir.checked)) {
+      result[day] = { midi: midi ? midi.checked : false, soir: soir ? soir.checked : false };
+    }
+  });
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: { closed_days: result } })
+  });
+  if (res.ok) {
+    restaurantData.closed_days = result;
+    showToast("Jours de fermeture mis à jour !");
+  } else {
+    showToast("Erreur lors de la sauvegarde");
+  }
+}
+
+window.showView = showView;
+window.filterResa = filterResa;
+window.openPublicPage = openPublicPage;
+window.switchFloorZone = switchFloorZone;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.closeModalOutside = closeModalOutside;
+window.addResa = addResa;
+window.changeDay = changeDay;
+window.markArrived = markArrived;
+window.cancelResa = cancelResa;
+window.saveClosedDays = saveClosedDays;
+window.saveRestaurantInfo = saveRestaurantInfo;
+window.saveCreneaux = saveCreneaux;
+window.addTable = addTable;
+window.deleteTable = deleteTable;
+window.logout = logout;
+window.assignTable = assignTable;
+</script>
+</body>
+</html>
