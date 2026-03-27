@@ -894,6 +894,7 @@ body {
 const sbSession = localStorage.getItem("sb_session");
 if (!sbSession) { window.location.href = "login.html"; }
 const sbUser = sbSession ? JSON.parse(sbSession) : null;
+let restaurantData = null;
 
 const SUPABASE_URL = 'https://tagpmmmclljaqahldkys.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
@@ -1262,7 +1263,6 @@ async function addResa() {
 // ---- TABLES DATA ----
 let tablesData = { salle: [], terrasse: [], bar: [] };
 let currentFloorZone = 'salle';
-let restaurantData = null;
 
 async function loadRestaurantData() {
   const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
