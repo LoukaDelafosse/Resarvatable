@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservatable</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #F8F7F5;
+  color: #1C1917;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.logo span { color: #E8A87C; font-style: italic; }
+.tagline {
+  font-size: 0.95rem;
+  color: rgba(28,25,23,0.45);
+  margin-bottom: 3rem;
+  text-align: center;
+}
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  max-width: 560px;
+}
+.card {
+  background: #FFFFFF;
+  border: 1px solid rgba(28,25,23,0.12);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.card:hover {
+  border-color: rgba(28,25,23,0.18);
+  background: #F1EFE8;
+  transform: translateY(-2px);
+}
+.card-icon { font-size: 2rem; }
+.card-title { font-size: 1rem; font-weight: 500; }
+.card-desc { font-size: 0.8rem; color: rgba(28,25,23,0.45); line-height: 1.5; }
+.card-link {
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: #C2622A;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr; }
+  .logo { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+  <div class="logo">Réserva<span>table</span></div>
+  <p class="tagline">La réservation simplifiée pour les restaurants indépendants</p>
+  <div class="cards">
+    <a class="card" href="reservatable-mvp.html">
+      <div class="card-icon">🍽️</div>
+      <div class="card-title">Page client</div>
+      <div class="card-desc">Recherchez un restaurant et réservez votre table en ligne.</div>
+      <div class="card-link">Accéder →</div>
+    </a>
+    <a class="card" href="tarifs.html">
+      <div class="card-icon">📊</div>
+      <div class="card-title">Dashboard restaurant</div>
+      <div class="card-desc">Gérez vos réservations, votre salle et vos SMS.</div>
+      <div class="card-link">Accéder →</div>
+    </a>
+  </div>
+</body>
+</html>

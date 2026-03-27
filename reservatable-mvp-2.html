@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservatable — Réservez votre table</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F9F5EF;
+    --warm: #EDE8DF;
+    --ink: #1C1917;
+    --ink-light: #57534E;
+    --ink-muted: #A8A29E;
+    --accent: #C2622A;
+    --accent-light: #F5E6DA;
+    --success: #2D6A4F;
+    --success-light: #D8F3DC;
+    --border: rgba(28,25,23,0.1);
+    --border-strong: rgba(28,25,23,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    font-weight: 300;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--cream);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  .header-nav { display: flex; gap: 1.5rem; align-items: center; }
+  .header-nav a { font-size: 0.85rem; color: var(--ink-light); text-decoration: none; }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    padding: 0.55rem 1.25rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 400;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:hover { opacity: 0.8; }
+
+  /* ---- HERO ---- */
+  .hero {
+    padding: 5rem 2rem 4rem;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1.1;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+    color: var(--ink);
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--ink-light);
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+  .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--border-strong);
+    padding: 0.65rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 400;
+    transition: background 0.2s;
+  }
+  .btn-outline:hover { background: var(--warm); }
+  .btn-hero {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.65rem 1.75rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .btn-hero:hover { opacity: 0.88; }
+
+  /* ---- SEARCH WIDGET ---- */
+  .search-section {
+    max-width: 700px;
+    margin: 0 auto 5rem;
+    padding: 0 2rem;
+  }
+  .search-card {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 40px rgba(28,25,23,0.06);
+  }
+  .search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  .search-field label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .search-field input, .search-field select {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-field input:focus, .search-field select:focus { border-color: var(--accent); }
+  .search-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+  }
+  .search-btn:hover { opacity: 0.88; }
+
+  /* ---- RESTAURANT LIST ---- */
+  .restaurants-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 5rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+  }
+  .section-count { font-size: 0.85rem; color: var(--ink-muted); }
+
+  .resto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+  .resto-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .resto-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(28,25,23,0.1); }
+  .resto-card.selected { border: 2px solid var(--accent); }
+  .resto-thumb {
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    position: relative;
+  }
+  .t1 { background: linear-gradient(135deg, #F5E6DA, #EDD5C0); }
+  .t2 { background: linear-gradient(135deg, #D8F3DC, #B7E4C7); }
+  .t3 { background: linear-gradient(135deg, #E8D5F5, #D4B8E8); }
+  .t4 { background: linear-gradient(135deg, #DAE8F5, #B8D4E8); }
+  .resto-rating {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .resto-body { padding: 14px 16px 16px; }
+  .resto-name { font-family: 'Playfair Display', serif; font-size: 1.05rem; margin-bottom: 4px; }
+  .resto-type { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 10px; }
+  .slots-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mini-slot {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--cream);
+  }
+  .mini-slot:hover, .mini-slot.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .mini-slot.full { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+
+  /* ---- BOOKING MODAL ---- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28,25,23,0.5);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .modal-resto { font-family: 'Playfair Display', serif; font-size: 1.3rem; }
+  .modal-sub { font-size: 0.82rem; color: var(--ink-muted); margin-top: 3px; }
+  .modal-close {
+    background: var(--warm);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .modal-section-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .slots-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+  .time-slot {
+    padding: 8px 16px;
+    border-radius: 30px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.15s;
+  }
+  .time-slot:hover { border-color: var(--accent); color: var(--accent); }
+  .time-slot.selected { background: var(--accent); color: white; border-color: var(--accent); }
+  .time-slot.full { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .field-group { margin-bottom: 12px; }
+  .field-label { font-size: 0.78rem; color: var(--ink-muted); margin-bottom: 5px; display: block; letter-spacing: 0.03em; }
+  .field-input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus { border-color: var(--accent); }
+  .sms-notice {
+    background: var(--accent-light);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn-confirm {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-confirm:hover { opacity: 0.88; }
+
+  /* ---- SUCCESS ---- */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 1rem 0;
+  }
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--success-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.75rem;
+  }
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .success-detail { font-size: 0.9rem; color: var(--ink-light); line-height: 1.6; margin-bottom: 1.5rem; }
+  .sms-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--success-light);
+    color: var(--success);
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  /* ---- FEATURES ---- */
+  .features {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 5rem 2rem;
+    margin-top: 2rem;
+  }
+  .features-inner { max-width: 900px; margin: 0 auto; }
+  .features-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    text-align: center;
+    margin-bottom: 0.75rem;
+    font-weight: 400;
+  }
+  .features-title em { font-style: italic; color: #E8A87C; }
+  .features-sub { text-align: center; color: rgba(249,245,239,0.55); font-size: 0.95rem; margin-bottom: 3rem; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+  .feature-item { padding: 1.5rem; background: rgba(255,255,255,0.05); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
+  .feature-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+  .feature-name { font-weight: 500; margin-bottom: 6px; font-size: 0.95rem; }
+  .feature-desc { font-size: 0.82rem; color: rgba(249,245,239,0.5); line-height: 1.6; }
+
+  /* ---- PRICING ---- */
+  .pricing {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+  .pricing-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+  }
+  .pricing-sub { text-align: center; color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 2.5rem; }
+  .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .plan-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
+  }
+  .plan-card.featured { border: 2px solid var(--accent); }
+  .plan-badge { font-size: 0.72rem; background: var(--accent-light); color: var(--accent); padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 1rem; font-weight: 500; }
+  .plan-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 8px; }
+  .plan-price { font-size: 2rem; font-weight: 500; margin-bottom: 4px; }
+  .plan-price span { font-size: 0.85rem; color: var(--ink-muted); font-weight: 300; }
+  .plan-desc { font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 1.25rem; line-height: 1.5; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .plan-features li { font-size: 0.83rem; color: var(--ink-light); display: flex; gap: 8px; align-items: flex-start; }
+  .plan-features li::before { content: "✓"; color: var(--accent); font-weight: 500; flex-shrink: 0; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+  }
+  footer strong { font-family: 'Playfair Display', serif; font-style: italic; color: var(--ink); font-weight: 400; }
+
+  @media (max-width: 600px) {
+    .search-grid { grid-template-columns: 1fr 1fr; }
+    .search-grid .search-field:first-child { grid-column: span 2; }
+    .plans-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Réserva<span>table</span></div>
+  <nav class="header-nav">
+    <a href="#restaurants">Restaurants</a>
+    <a href="#tarifs">Tarifs</a>
+    <button class="btn-primary" onclick="document.getElementById('tarifs').scrollIntoView({behavior:'smooth'})">Pour les restaurants</button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">La réservation simplifiée</p>
+  <h1>Votre table,<br><em>en deux clics.</em></h1>
+  <p>Réservez dans les meilleurs restaurants indépendants de votre région. Confirmation instantanée par SMS, aucun compte requis.</p>
+  <div class="hero-cta">
+    <button class="btn-hero" onclick="document.getElementById('restaurants').scrollIntoView({behavior:'smooth'})">Trouver une table ce soir</button>
+    <button class="btn-outline" onclick="document.getElementById('tarifs').scrollIntoView({behavior:'smooth'})">Je suis restaurateur</button>
+  </div>
+</section>
+
+<!-- SEARCH -->
+<section class="search-section">
+  <div class="search-card">
+    <div class="search-grid">
+      <div class="search-field" style="grid-column:span 1">
+        <label>Ville ou quartier</label>
+        <input type="text" value="Normandie" />
+      </div>
+      <div class="search-field">
+        <label>Date</label>
+        <input type="date" id="search-date" />
+      </div>
+      <div class="search-field">
+        <label>Personnes</label>
+        <select>
+          <option>1 personne</option>
+          <option selected>2 personnes</option>
+          <option>3 personnes</option>
+          <option>4 personnes</option>
+          <option>6 personnes</option>
+          <option>8+ personnes</option>
+        </select>
+      </div>
+      <button class="search-btn" onclick="document.getElementById('restaurants').scrollIntoView({behavior:'smooth'})">Chercher</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESTAURANTS -->
+<section class="restaurants-section" id="restaurants">
+  <div class="section-header">
+    <h2 class="section-title">Disponible ce soir</h2>
+    <span class="section-count">4 restaurants</span>
+  </div>
+  <div class="resto-grid">
+    <div class="resto-card" onclick="openModal('Le Pressoir Normand','Gastronomique · Caen','🍖','t1')">
+      <div class="resto-thumb t1">🍖<span class="resto-rating">★ 4.8</span></div>
+      <div class="resto-body">
+        <div class="resto-name">Le Pressoir Normand</div>
+        <div class="resto-type">Gastronomique · Caen</div>
+        <div class="slots-row">
+          <div class="mini-slot full">19h00</div>
+          <div class="mini-slot">19h30</div>
+          <div class="mini-slot">20h00</div>
+          <div class="mini-slot">20h30</div>
+        </div>
+      </div>
+    </div>
+    <div class="resto-card" onclick="openModal('Brasserie du Viaduc','Brasserie · Vire','🥐','t2')">
+      <div class="resto-thumb t2">🥐<span class="resto-rating">★ 4.2</span></div>
+      <div class="resto-body">
+        <div class="resto-name">Brasserie du Viaduc</div>
+        <div class="resto-type">Brasserie · Vire</div>
+        <div class="slots-row">
+          <div class="mini-slot">19h00</div>
+          <div class="mini-slot">19h30</div>
+          <div class="mini-slot">20h00</div>
+          <div class="mini-slot">21h00</div>
+        </div>
+      </div>
+    </div>
+    <div class="resto-card" onclick="openModal('Chez Marie','Fruits de mer · Honfleur','🦞','t3')">
+      <div class="resto-thumb t3">🦞<span class="resto-rating">★ 4.9</span></div>
+      <div class="resto-body">
+        <div class="resto-name">Chez Marie</div>
+        <div class="resto-type">Fruits de mer · Honfleur</div>
+        <div class="slots-row">
+          <div class="mini-slot full">19h00</div>
+          <div class="mini-slot full">19h30</div>
+          <div class="mini-slot">20h00</div>
+          <div class="mini-slot full">20h30</div>
+        </div>
+      </div>
+    </div>
+    <div class="resto-card" onclick="openModal('La Table du Bocage','Grillades · Saint-Lô','🥩','t4')">
+      <div class="resto-thumb t4">🥩<span class="resto-rating">★ 4.5</span></div>
+      <div class="resto-body">
+        <div class="resto-name">La Table du Bocage</div>
+        <div class="resto-type">Grillades · Saint-Lô</div>
+        <div class="slots-row">
+          <div class="mini-slot">19h00</div>
+          <div class="mini-slot">20h00</div>
+          <div class="mini-slot">20h30</div>
+          <div class="mini-slot">21h00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <h2 class="features-title">Tout ce dont un restaurant<br><em>indépendant</em> a besoin</h2>
+    <p class="features-sub">Simple à installer, puissant à utiliser. Sans commission sur les couverts.</p>
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">📅</div>
+        <div class="feature-name">Réservations 24h/24</div>
+        <div class="feature-desc">Vos clients réservent même quand vous dormez. Gestion automatique des créneaux.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📱</div>
+        <div class="feature-name">Rappels SMS auto</div>
+        <div class="feature-desc">Un SMS de confirmation + un rappel 2h avant. Moins de no-shows, plus de sérénité.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🗓️</div>
+        <div class="feature-name">Dashboard simple</div>
+        <div class="feature-desc">Vue de vos réservations du jour, plan de salle, annulations en un clic.</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔌</div>
+        <div class="feature-name">Widget intégrable</div>
+        <div class="feature-desc">Un bout de code à coller sur votre site web existant. Prêt en 5 minutes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="tarifs">
+  <h2 class="pricing-title">Tarifs transparents</h2>
+  <p class="pricing-sub">Aucune commission sur les couverts. Jamais.</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Essentiel</div>
+      <div class="plan-price">29€ <span>/ mois</span></div>
+      <p class="plan-desc">Pour démarrer et tester sans risque.</p>
+      <ul class="plan-features">
+        <li>Jusqu'à 100 réservations/mois</li>
+        <li>Confirmations SMS incluses</li>
+        <li>Dashboard basique</li>
+        <li>Widget intégrable</li>
+        <li>Support email</li>
+      </ul>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Le plus populaire</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">59€ <span>/ mois</span></div>
+      <p class="plan-desc">Pour les restaurants qui veulent optimiser chaque service.</p>
+      <ul class="plan-features">
+        <li>Réservations illimitées</li>
+        <li>SMS rappels automatiques</li>
+        <li>Plan de salle interactif</li>
+        <li>Statistiques avancées</li>
+        <li>Gestion des no-shows</li>
+        <li>Support prioritaire</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Réservatable</strong> — Fait avec ❤️ pour les restaurants indépendants normands
+</footer>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div id="booking-form-wrap">
+      <div class="modal-header">
+        <div>
+          <div class="modal-resto" id="modal-name">Le Pressoir Normand</div>
+          <div class="modal-sub" id="modal-sub">Gastronomique · Caen</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <p class="modal-section-label">Choisissez un créneau</p>
+      <div class="slots-grid">
+        <div class="time-slot full">19h00</div>
+        <div class="time-slot" onclick="selectTime(this)">19h30</div>
+        <div class="time-slot" onclick="selectTime(this)">20h00</div>
+        <div class="time-slot selected" onclick="selectTime(this)">20h30</div>
+        <div class="time-slot" onclick="selectTime(this)">21h00</div>
+        <div class="time-slot full">21h30</div>
+      </div>
+
+      <p class="modal-section-label">Vos coordonnées</p>
+      <div class="form-row">
+        <div class="field-group">
+          <label class="field-label">Prénom & Nom</label>
+          <input class="field-input" type="text" placeholder="Marie Dupont" id="input-name" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Téléphone</label>
+          <input class="field-input" type="tel" placeholder="06 00 00 00 00" id="input-phone" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Remarques (allergies, occasion spéciale...)</label>
+        <input class="field-input" type="text" placeholder="Ex : anniversaire, végétarien..." id="input-note" />
+      </div>
+
+      <div class="sms-notice">
+        <span>📱</span>
+        <span>Vous recevrez une confirmation par SMS + un rappel 2h avant votre réservation.</span>
+      </div>
+
+      <button class="btn-confirm" onclick="confirmBooking()">Confirmer ma réservation</button>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Réservation confirmée !</div>
+      <p class="success-detail" id="success-detail">
+        Votre table est réservée au<br>
+        <strong id="s-name"></strong><br>
+        le <strong id="s-date"></strong> à <strong id="s-time"></strong><br>
+        au nom de <strong id="s-person"></strong>
+      </p>
+      <div class="sms-tag">📱 SMS envoyé au <span id="s-phone"></span></div>
+      <br><br>
+      <button class="btn-outline" onclick="closeModal()" style="margin:0 auto;display:block;">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.location.href = "restaurant.html?slug=le-pressoir-normand";
+</script>
+<noscript>
+  // ---- SUPABASE CONFIG ----
+  const SUPABASE_URL = 'https://tagpmmmclljaqahldkys.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
+
+  async function saveReservation(data) {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/reservations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+    return response.ok;
+  }
+
+  // ---- APP ----
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('search-date').value = today;
+
+  let selectedTime = '20h30';
+  let currentResto = '';
+  let currentSub = '';
+
+  function openModal(name, sub) {
+    currentResto = name;
+    currentSub = sub;
+    document.getElementById('modal-name').textContent = name;
+    document.getElementById('modal-sub').textContent = sub;
+    document.getElementById('booking-form-wrap').style.display = 'block';
+    document.getElementById('success-screen').style.display = 'none';
+    document.getElementById('input-name').value = '';
+    document.getElementById('input-phone').value = '';
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+
+  function selectTime(el) {
+    if (el.classList.contains('full')) return;
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedTime = el.textContent;
+  }
+
+  async function confirmBooking() {
+    const name = document.getElementById('input-name').value.trim();
+    const phone = document.getElementById('input-phone').value.trim();
+    const note = document.getElementById('input-note').value.trim();
+    if (!name || !phone) {
+      alert('Merci de renseigner votre nom et téléphone.');
+      return;
+    }
+
+    // Bouton en chargement
+    const btn = document.querySelector('.btn-confirm');
+    btn.textContent = 'Enregistrement...';
+    btn.disabled = true;
+
+    const dateVal = document.getElementById('search-date').value || today;
+    const covers = parseInt(document.querySelector('select').value) || 2;
+
+    const ok = await saveReservation({
+      restaurant_name: currentResto,
+      guest_name: name,
+      guest_phone: phone,
+      date: dateVal,
+      time: selectedTime,
+      covers: covers,
+      note: note,
+      status: 'confirmed'
+    });
+
+    btn.textContent = 'Confirmer ma réservation';
+    btn.disabled = false;
+
+    if (ok) {
+      // Envoyer SMS de confirmation
+      const smsMsg = "Reservation confirmee au " + currentResto + " le " + dateVal + " a " + selectedTime + " pour " + covers + " personnes. A bientot !";
+      fetch("https://tagpmmmclljaqahldkys.supabase.co/functions/v1/clever-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s" },
+        body: JSON.stringify({ phone: phone, message: smsMsg })
+      });
+      const dateStr = new Date(dateVal).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+      document.getElementById('s-name').textContent = currentResto;
+      document.getElementById('s-date').textContent = dateStr;
+      document.getElementById('s-time').textContent = selectedTime;
+      document.getElementById('s-person').textContent = name;
+      document.getElementById('s-phone').textContent = phone;
+      document.getElementById('booking-form-wrap').style.display = 'none';
+      document.getElementById('success-screen').style.display = 'block';
+    } else {
+      alert('Une erreur est survenue. Vérifiez votre connexion et réessayez.');
+    }
+  }
+</script>
+</body>
+</html>

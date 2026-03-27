@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réserver une table</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #F9F5EF;
+  --warm: #EDE8DF;
+  --ink: #1C1917;
+  --ink-light: #57534E;
+  --ink-muted: #A8A29E;
+  --accent: #C2622A;
+  --accent-light: #F5E6DA;
+  --success: #2D6A4F;
+  --success-light: #D8F3DC;
+  --border: rgba(28,25,23,0.1);
+  --border-strong: rgba(28,25,23,0.2);
+}
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  font-weight: 300;
+}
+
+/* LOADING */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+}
+
+/* ERROR */
+.error-page {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 2rem;
+}
+.error-page h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 1rem; }
+.error-page p { color: var(--ink-light); }
+
+/* HEADER */
+.resto-header {
+  display: none;
+  padding: 2.5rem 2rem 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+.resto-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  border: 1px solid rgba(194,98,42,0.2);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+.resto-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  margin-bottom: 0.75rem;
+}
+.resto-desc {
+  font-size: 0.95rem;
+  color: var(--ink-light);
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto 1.25rem;
+}
+.resto-meta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+.resto-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* BOOKING SECTION */
+.booking-section {
+  display: none;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+.booking-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 2rem;
+  box-shadow: 0 4px 40px rgba(28,25,23,0.06);
+}
+.booking-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.field-group { margin-bottom: 12px; }
+.field-label { font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.field-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--accent); }
+
+.slots-section { margin-bottom: 1.25rem; }
+.slots-label { font-size: 0.72rem; color: var(--ink-muted); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.slots-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.slot-btn {
+  padding: 8px 16px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--ink-light);
+  background: var(--cream);
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+.slot-btn:hover { border-color: var(--accent); color: var(--accent); }
+.slot-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+.slot-btn.full { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+
+.sms-notice {
+  background: var(--accent-light);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-confirm {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-confirm:hover { opacity: 0.88; }
+.btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* SUCCESS */
+.success-screen {
+  display: none;
+  text-align: center;
+  padding: 1rem 0;
+}
+.success-icon {
+  width: 64px; height: 64px;
+  background: var(--success-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.25rem;
+  font-size: 1.75rem;
+  color: var(--success);
+}
+.success-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.5rem; }
+.success-detail { font-size: 0.9rem; color: var(--ink-light); line-height: 1.6; margin-bottom: 1.5rem; }
+.sms-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--success-light); color: var(--success);
+  font-size: 0.8rem; padding: 6px 14px; border-radius: 20px; font-weight: 500;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--border);
+}
+footer a { color: var(--accent); text-decoration: none; }
+
+@media (max-width: 500px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">Chargement...</div>
+
+<div class="error-page" id="error-page">
+  <h1>Restaurant introuvable</h1>
+  <p>Ce restaurant n'existe pas ou n'est plus disponible sur Normresa.</p>
+</div>
+
+<div class="resto-header" id="resto-header">
+  <div class="resto-badge" id="resto-cuisine">Gastronomique</div>
+  <h1 class="resto-name" id="resto-name">Le Pressoir Normand</h1>
+  <p class="resto-desc" id="resto-desc">Description du restaurant</p>
+  <div class="resto-meta">
+    <span>📍 <span id="resto-city">Ville</span></span>
+    <span id="resto-hours-midi-wrap" style="display:none">🍽 Midi : <span id="resto-hours-midi"></span></span>
+    <span>🕖 <span id="resto-hours">19h00 - 22h00</span></span>
+    <span>📞 <span id="resto-phone">Téléphone</span></span>
+  </div>
+</div>
+
+<div class="booking-section" id="booking-section">
+  <div class="booking-card">
+    <div id="booking-form-wrap">
+      <div class="booking-title">Réserver une table</div>
+
+      <div class="form-row">
+        <div>
+          <label class="field-label">Date</label>
+          <input class="field-input" type="date" id="input-date" onchange="generateSlots()" />
+        </div>
+        <div>
+          <label class="field-label">Personnes</label>
+          <select class="field-input" id="input-covers" onchange="generateSlots()">
+            <option>1</option><option selected>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6</option><option>8</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="slots-section">
+        <label class="slots-label">Choisissez un créneau</label>
+        <div class="slots-grid" id="slots-grid"></div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label class="field-label">Prénom & Nom</label>
+          <input class="field-input" type="text" id="input-name" placeholder="Marie Dupont" />
+        </div>
+        <div>
+          <label class="field-label">Téléphone</label>
+          <input class="field-input" type="tel" id="input-phone" placeholder="06 00 00 00 00" />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Email <span style="color:var(--accent);font-size:0.78rem">*</span> <span style="color:var(--ink-light);font-size:0.78rem">(confirmation + lien d'annulation)</span></label>
+        <input class="field-input" type="email" id="input-email" placeholder="marie@exemple.fr" required />
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Remarques (allergies, occasion...)</label>
+        <input class="field-input" type="text" id="input-note" placeholder="Ex : anniversaire, végétarien..." />
+      </div>
+
+      <div class="sms-notice">
+        <span>📧</span>
+        <span>Confirmation par email immédiate + rappel 2h avant avec lien d'annulation. <strong>Pensez à vérifier vos spams.</strong></span>
+      </div>
+
+      <button class="btn-confirm" id="btn-confirm" onclick="confirmBooking()">Confirmer ma réservation</button>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Réservation confirmée !</div>
+      <p class="success-detail">
+        Votre table est réservée au<br>
+        <strong id="s-name"></strong><br>
+        le <strong id="s-date"></strong> à <strong id="s-time"></strong><br>
+        au nom de <strong id="s-person"></strong>
+      </p>
+      <div class="sms-tag" id="s-email-tag" style="display:none">📧 Confirmation envoyée à <span id="s-email"></span></div>
+      <div style="margin-top:16px;padding:12px 16px;background:#FEF3EE;border-radius:10px;font-size:0.82rem;color:#C2622A;text-align:center">
+        Vous ne pouvez pas venir ? <a id="s-cancel-link" href="#" style="color:#C2622A;font-weight:500">Annuler cette réservation →</a>
+      </div>
+      <br>
+      <button class="btn-outline" onclick="resetForm()" style="margin:0 auto;display:block;">Faire une autre réservation</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Propulsé par <a href="/">Normresa</a> — Réservation en ligne pour restaurants indépendants
+</footer>
+
+<script>
+const SUPABASE_URL = "https://tagpmmmclljaqahldkys.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s";
+
+const sbHeaders = {
+  "Content-Type": "application/json",
+  "apikey": SUPABASE_KEY,
+  "Authorization": "Bearer " + SUPABASE_KEY
+};
+
+let restaurant = null;
+let selectedTime = null;
+
+// Lire le slug dans l'URL
+const urlParams = new URLSearchParams(window.location.search);
+const slug = urlParams.get("slug") || window.location.pathname.split("/").filter(Boolean).pop();
+
+async function init() {
+  if (!slug || slug === "restaurant.html") {
+    showError();
+    return;
+  }
+
+  const res = await fetch(SUPABASE_URL + "/rest/v1/restaurants?slug=eq." + slug + "&active=eq.true", { headers: sbHeaders });
+  const data = await res.json();
+
+  if (!data || data.length === 0) {
+    showError();
+    return;
+  }
+
+  restaurant = data[0];
+  document.title = "Réserver — " + restaurant.name;
+  displayRestaurant();
+}
+
+function showError() {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("error-page").style.display = "flex";
+}
+
+function displayRestaurant() {
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("resto-cuisine").textContent = restaurant.cuisine || "Restaurant";
+  document.getElementById("resto-name").textContent = restaurant.name;
+  document.getElementById("resto-desc").textContent = restaurant.description || "";
+  document.getElementById("resto-city").textContent = restaurant.city || "";
+  var serviceType = restaurant.service_type ||
+    (restaurant.open_time_midi && restaurant.open_time ? 'both' :
+     restaurant.open_time_midi ? 'midi' : 'soir');
+  var hoursEl = document.getElementById("resto-hours");
+  var hoursMidiWrap = document.getElementById("resto-hours-midi-wrap");
+  if (serviceType === 'continu') {
+    hoursEl.textContent = "Continu : " + (restaurant.open_time || "09:00") + " – " + (restaurant.close_time || "15:00");
+    hoursMidiWrap.style.display = "none";
+  } else if (serviceType === 'midi') {
+    hoursEl.textContent = "Midi : " + (restaurant.open_time_midi || "12:00") + " – " + (restaurant.close_time_midi || "14:00");
+    hoursMidiWrap.style.display = "none";
+  } else if (serviceType === 'both') {
+    hoursEl.textContent = "Soir : " + (restaurant.open_time || "19:00") + " – " + (restaurant.close_time || "22:00");
+    document.getElementById("resto-hours-midi").textContent = (restaurant.open_time_midi || "12:00") + " – " + (restaurant.close_time_midi || "14:00");
+    hoursMidiWrap.style.display = "";
+  } else {
+    hoursEl.textContent = "Soir : " + (restaurant.open_time || "19:00") + " – " + (restaurant.close_time || "22:00");
+    hoursMidiWrap.style.display = "none";
+  }
+  document.getElementById("resto-phone").textContent = restaurant.phone || "";
+  document.getElementById("resto-header").style.display = "block";
+  document.getElementById("booking-section").style.display = "block";
+
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("input-date").value = today;
+  generateSlots();
+}
+
+function buildSlots(openTime, closeTime, duration) {
+  var parts1 = openTime.split(":"); var openH = parseInt(parts1[0]); var openM = parseInt(parts1[1]);
+  var parts2 = closeTime.split(":"); var closeH = parseInt(parts2[0]); var closeM = parseInt(parts2[1]);
+  var openMins = openH * 60 + openM;
+  var closeMins = closeH * 60 + closeM;
+  var slots = [];
+  for (var m = openMins; m + duration <= closeMins; m += duration) {
+    var h = Math.floor(m / 60);
+    var min = m % 60;
+    slots.push(h + "h" + (min === 0 ? "00" : (min < 10 ? "0" + min : min)));
+  }
+  return slots;
+}
+
+async function generateSlots() {
+  var duration = restaurant.slot_duration || 90;
+  var date = document.getElementById("input-date").value;
+
+  // Détecter le jour de la semaine sans décalage UTC
+  var dateParts = date.split("-");
+  var dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+  var DAYS_FR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  var dayName = DAYS_FR[dateObj.getDay()];
+  var closedDays = restaurant.closed_days || {};
+  // Chercher le jour en minuscule et en majuscule (compatibilité)
+  var closedInfo = closedDays[dayName] || closedDays[dayName.charAt(0).toUpperCase() + dayName.slice(1)] || {};
+  var midiClosed = !!closedInfo.midi;
+  var soirClosed = !!closedInfo.soir;
+
+  var serviceType = restaurant.service_type ||
+    (restaurant.open_time_midi && restaurant.open_time ? 'both' :
+     restaurant.open_time_midi ? 'midi' : 'soir');
+  var slots = [];
+  if (serviceType === 'continu' || serviceType === 'soir') {
+    if (!soirClosed) {
+      slots = slots.concat(buildSlots(restaurant.open_time || "19:00", restaurant.close_time || "22:00", duration));
+    }
+  } else if (serviceType === 'midi') {
+    if (!midiClosed && restaurant.open_time_midi && restaurant.close_time_midi) {
+      slots = slots.concat(buildSlots(restaurant.open_time_midi, restaurant.close_time_midi, duration));
+    }
+  } else if (serviceType === 'both') {
+    if (!midiClosed && restaurant.open_time_midi && restaurant.close_time_midi) {
+      slots = slots.concat(buildSlots(restaurant.open_time_midi, restaurant.close_time_midi, duration));
+    }
+    if (!soirClosed) {
+      slots = slots.concat(buildSlots(restaurant.open_time || "19:00", restaurant.close_time || "22:00", duration));
+    }
+  }
+
+  var grid = document.getElementById("slots-grid");
+  if (slots.length === 0) {
+    grid.innerHTML = '<p style="color:var(--ink-muted);font-size:0.85rem;padding:8px 0;">🔒 Le restaurant est fermé ce jour.</p>';
+    selectedTime = null;
+    return;
+  }
+
+  var maxCovers = restaurant.max_covers || 30;
+  var requestedCovers = parseInt(document.getElementById("input-covers").value) || 2;
+  var res = await fetch(SUPABASE_URL + "/rest/v1/reservations?date=eq." + date + "&restaurant_name=ilike." + encodeURIComponent(restaurant.name) + "&status=eq.confirmed&select=time,covers", { headers: sbHeaders });
+  var existing = await res.json();
+  var coversBySlot = {};
+  if (existing && existing.length > 0) {
+    for (var i = 0; i < existing.length; i++) {
+      var r = existing[i];
+      coversBySlot[r.time] = (coversBySlot[r.time] || 0) + (r.covers || 0);
+    }
+  }
+  var grid = document.getElementById("slots-grid");
+  var html = "";
+  for (var j = 0; j < slots.length; j++) {
+    var s = slots[j];
+    var taken = coversBySlot[s] || 0;
+    var remaining = maxCovers - taken;
+    var isFull = remaining < requestedCovers;
+    if (isFull) {
+      html += '<button class="slot-btn full" disabled>' + s + " (complet)</button>";
+    } else {
+      html += '<button class="slot-btn" onclick="selectSlot(this, \'' + s + '\')">' + s + "</button>";
+    }
+  }
+  grid.innerHTML = html;
+  selectedTime = null;
+  var firstAvail = grid.querySelector(".slot-btn:not(.full)");
+  if (firstAvail) {
+    firstAvail.classList.add("selected");
+    selectedTime = firstAvail.textContent;
+  }
+}
+
+function selectSlot(el, time) {
+  if (el.classList.contains("full")) return;
+  document.querySelectorAll(".slot-btn").forEach(s => s.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedTime = time;
+}
+
+async function confirmBooking() {
+  const name = document.getElementById("input-name").value.trim();
+  const phone = document.getElementById("input-phone").value.trim();
+  const email = document.getElementById("input-email").value.trim();
+  const note = document.getElementById("input-note").value.trim();
+  const date = document.getElementById("input-date").value;
+  const covers = parseInt(document.getElementById("input-covers").value);
+
+  if (!name || !phone) { alert("Merci de renseigner votre nom et téléphone."); return; }
+  if (!email) { alert("Merci de renseigner votre email pour recevoir la confirmation et le lien d'annulation."); return; }
+  if (!selectedTime) { alert("Merci de choisir un créneau."); return; }
+
+  const btn = document.getElementById("btn-confirm");
+  btn.textContent = "Enregistrement...";
+  btn.disabled = true;
+
+  const res = await fetch(SUPABASE_URL + "/rest/v1/reservations", {
+    method: "POST",
+    headers: Object.assign({}, sbHeaders, { "Prefer": "return=representation" }),
+    body: JSON.stringify({
+      restaurant_name: restaurant.name,
+      guest_name: name,
+      guest_phone: phone,
+      email: email || null,
+      date: date,
+      time: selectedTime,
+      covers: covers,
+      note: note,
+      status: "confirmed"
+    })
+  });
+
+  btn.textContent = "Confirmer ma réservation";
+  btn.disabled = false;
+
+  if (res.ok) {
+    const resData = await res.json();
+    const reservationId = resData && resData[0] ? resData[0].id : null;
+
+    // Envoyer email de confirmation si email fourni
+    if (email && reservationId) {
+      fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "confirmation",
+          to: email,
+          name: name,
+          restaurant_name: restaurant.name,
+          city: restaurant.city || "",
+          date: date,
+          time: selectedTime,
+          covers: covers,
+          reservation_id: reservationId
+        })
+      });
+    }
+
+    const [dy, dm, dd] = date.split("-");
+    const dateStr = new Date(parseInt(dy), parseInt(dm) - 1, parseInt(dd)).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    document.getElementById("s-name").textContent = restaurant.name;
+    document.getElementById("s-date").textContent = dateStr;
+    document.getElementById("s-time").textContent = selectedTime;
+    document.getElementById("s-person").textContent = name;
+
+    if (email) {
+      document.getElementById("s-email").textContent = email;
+      document.getElementById("s-email-tag").style.display = "";
+    }
+    if (reservationId) {
+      document.getElementById("s-cancel-link").href = "/cancel.html?id=" + reservationId;
+    }
+
+    document.getElementById("booking-form-wrap").style.display = "none";
+    document.getElementById("success-screen").style.display = "block";
+    await generateSlots();
+  } else {
+    alert("Une erreur est survenue. Veuillez réessayer.");
+  }
+}
+
+function resetForm() {
+  document.getElementById("success-screen").style.display = "none";
+  document.getElementById("booking-form-wrap").style.display = "block";
+  document.getElementById("input-name").value = "";
+  document.getElementById("input-phone").value = "";
+  document.getElementById("input-email").value = "";
+  document.getElementById("input-note").value = "";
+  generateSlots();
+}
+
+init();
+</script>
+</body>
+</html>

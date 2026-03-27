@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annuler ma réservation — Normresa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F8F7F5; --surface: #FFFFFF;
+  --border: rgba(28,25,23,0.10);
+  --text: #1C1917; --text2: rgba(28,25,23,0.55); --text3: rgba(28,25,23,0.38);
+  --accent: #C2622A; --red: #C24040; --red-bg: rgba(194,64,64,0.08);
+  --green: #2D9E6B; --green-bg: rgba(45,158,107,0.10);
+  --font-sans: 'DM Sans', sans-serif; --font-serif: 'Playfair Display', serif;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; font-weight: 300; }
+header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); }
+.logo { font-family: var(--font-serif); font-size: 1.2rem; text-decoration: none; color: var(--text); }
+.logo span { color: #E8A87C; font-style: italic; }
+main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+.icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.title { font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 0.5rem; }
+.subtitle { font-size: 0.88rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; }
+.resa-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  margin-bottom: 2rem;
+}
+.resa-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.88rem; }
+.resa-label { color: var(--text2); }
+.resa-val { font-weight: 500; }
+.btn-cancel {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--red);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn-cancel:hover { opacity: 0.9; }
+.btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.success-box {
+  background: var(--green-bg);
+  border: 1px solid rgba(45,158,107,0.2);
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: var(--green);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.error-box {
+  background: var(--red-bg);
+  border: 1px solid rgba(194,64,64,0.2);
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: var(--red);
+  font-size: 0.88rem;
+}
+.loading { color: var(--text3); font-size: 0.88rem; }
+footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: var(--text3); border-top: 1px solid var(--border); }
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">Norm<span>resa</span></a>
+</header>
+<main>
+  <div class="card">
+    <div id="loading-state">
+      <div class="icon">⏳</div>
+      <p class="loading">Chargement de votre réservation...</p>
+    </div>
+
+    <div id="cancel-state" style="display:none">
+      <div class="icon">📅</div>
+      <div class="title">Annuler ma réservation</div>
+      <p class="subtitle">Vous êtes sur le point d'annuler la réservation suivante. Cette action est irréversible.</p>
+      <div class="resa-box">
+        <div class="resa-row"><span class="resa-label">Restaurant</span><span class="resa-val" id="c-restaurant">—</span></div>
+        <div class="resa-row"><span class="resa-label">Date</span><span class="resa-val" id="c-date">—</span></div>
+        <div class="resa-row"><span class="resa-label">Heure</span><span class="resa-val" id="c-time">—</span></div>
+        <div class="resa-row"><span class="resa-label">Couverts</span><span class="resa-val" id="c-covers">—</span></div>
+        <div class="resa-row"><span class="resa-label">Au nom de</span><span class="resa-val" id="c-name">—</span></div>
+      </div>
+      <button class="btn-cancel" id="btn-cancel" onclick="cancelReservation()">
+        Confirmer l'annulation
+      </button>
+    </div>
+
+    <div id="already-cancelled" style="display:none">
+      <div class="icon">✓</div>
+      <div class="title">Déjà annulée</div>
+      <p class="subtitle">Cette réservation a déjà été annulée.</p>
+    </div>
+
+    <div id="success-state" style="display:none">
+      <div class="icon">✓</div>
+      <div class="title">Réservation annulée</div>
+      <div class="success-box" style="margin-top:1rem">
+        Votre réservation a bien été annulée. Le restaurant en a été informé automatiquement.
+      </div>
+    </div>
+
+    <div id="error-state" style="display:none">
+      <div class="icon">⚠️</div>
+      <div class="title">Lien invalide</div>
+      <div class="error-box" style="margin-top:1rem">
+        Ce lien d'annulation est invalide ou a expiré. Contactez directement le restaurant.
+      </div>
+    </div>
+  </div>
+</main>
+<footer>Propulsé par <a href="/">Normresa</a></footer>
+
+<script>
+const SUPABASE_URL = "https://tagpmmmclljaqahldkys.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s";
+const sbHeaders = { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Content-Type": "application/json" };
+
+const params = new URLSearchParams(window.location.search);
+const resaId = params.get("id");
+
+function show(id) {
+  ["loading-state","cancel-state","already-cancelled","success-state","error-state"].forEach(function(s) {
+    document.getElementById(s).style.display = s === id ? "" : "none";
+  });
+}
+
+function formatDate(dateStr) {
+  var parts = dateStr.split("-");
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+    .toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+async function load() {
+  if (!resaId) { show("error-state"); return; }
+
+  var res = await fetch(SUPABASE_URL + "/rest/v1/reservations?id=eq." + resaId + "&select=id,guest_name,date,time,covers,status,restaurant_name", { headers: sbHeaders });
+  if (!res.ok) { show("error-state"); return; }
+
+  var data = await res.json();
+  if (!data || data.length === 0) { show("error-state"); return; }
+
+  var r = data[0];
+
+  if (r.status === "ann") { show("already-cancelled"); return; }
+
+  document.getElementById("c-restaurant").textContent = r.restaurant_name || "—";
+  document.getElementById("c-date").textContent = r.date ? formatDate(r.date) : "—";
+  document.getElementById("c-time").textContent = r.time || "—";
+  document.getElementById("c-covers").textContent = r.covers + " personne" + (r.covers > 1 ? "s" : "");
+  document.getElementById("c-name").textContent = r.guest_name || "—";
+
+  show("cancel-state");
+}
+
+async function cancelReservation() {
+  var btn = document.getElementById("btn-cancel");
+  btn.textContent = "Annulation en cours...";
+  btn.disabled = true;
+
+  var res = await fetch(SUPABASE_URL + "/rest/v1/reservations?id=eq." + resaId, {
+    method: "PATCH",
+    headers: Object.assign({}, sbHeaders, { "Prefer": "return=minimal" }),
+    body: JSON.stringify({ status: "ann" })
+  });
+
+  if (res.ok) {
+    show("success-state");
+  } else {
+    btn.textContent = "Confirmer l'annulation";
+    btn.disabled = false;
+    alert("Une erreur est survenue. Veuillez réessayer.");
+  }
+}
+
+load();
+</script>
+</body>
+</html>

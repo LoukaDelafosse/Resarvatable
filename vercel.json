@@ -1,0 +1,11 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/index-2.html" },
+    { "source": "/reservatable-mvp.html", "destination": "/reservatable-mvp-2.html" },
+    { "source": "/tarifs.html", "destination": "/tarifs-2.html" },
+    { "source": "/login.html", "destination": "/login-2.html" },
+    { "source": "/onboarding.html", "destination": "/onboarding-2.html" },
+    { "source": "/restaurant.html", "destination": "/restaurant-2.html" },
+    { "source": "/reservatable-dashboard.html", "destination": "/reservatable-dashboard-2.html" }
+  ]
+}

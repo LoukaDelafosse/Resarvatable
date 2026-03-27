@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Normresa — Configurez votre restaurant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F8F7F5; --surface: #FFFFFF; --surface2: #F1EFE8; --surface3: #E5E2D9;
+  --border: rgba(28,25,23,0.09); --border2: rgba(28,25,23,0.16);
+  --text: #1C1917; --rgba(28,25,23,0.55); --text3: rgba(28,25,23,0.38);
+  --accent: #C2622A; --accent2: #E8A87C; --green: #2D9E6B; --green-bg: rgba(45,158,107,0.12); --red: #C24040;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-weight: 300; }
+body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; }
+header { padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.logo { font-family: 'Playfair Display', serif; font-size: 1.25rem; }
+.logo span { color: var(--accent2); font-style: italic; }
+.container { max-width: 680px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+.steps { display: flex; align-items: center; margin-bottom: 2.5rem; }
+.step { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text3); white-space: nowrap; }
+.step.active { color: var(--accent2); }
+.step.done { color: var(--green); }
+.step-num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; flex-shrink: 0; }
+.step.active .step-num { background: var(--accent); border-color: var(--accent); color: white; }
+.step.done .step-num { background: var(--green); border-color: var(--green); color: white; }
+.step-line { flex: 1; height: 1px; background: var(--border); margin: 0 8px; min-width: 20px; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 400; margin-bottom: 0.5rem; }
+.page-title em { font-style: italic; color: var(--accent2); }
+.page-sub { font-size: 0.88rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+.card-title { font-size: 0.88rem; font-weight: 500; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.field-group { margin-bottom: 12px; }
+.field-label { font-size: 0.72rem; color: var(--text3); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.field-input { width: 100%; padding: 0.7rem 0.9rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; font-size: 0.88rem; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.15s; }
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: var(--text3); }
+.horaires-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.tables-grid { display: flex; flex-direction: column; gap: 8px; }
+.table-row { display: grid; grid-template-columns: 1fr 40px 1fr 32px; gap: 8px; align-items: end; }
+.table-sep { font-size: 0.75rem; color: var(--text3); text-align: center; padding-bottom: 10px; }
+.btn-add-table { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--accent2); cursor: pointer; background: none; border: 1px dashed rgba(232,168,124,0.3); border-radius: 8px; padding: 8px 12px; margin-top: 8px; width: 100%; justify-content: center; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+.btn-add-table:hover { background: rgba(232,168,124,0.06); border-color: rgba(232,168,124,0.5); }
+.btn-remove { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.15s; padding-bottom: 8px; }
+.btn-remove:hover { color: var(--red); }
+.zone-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text3); cursor: pointer; margin-left: auto; }
+.toggle-sw { width: 32px; height: 18px; background: var(--surface3); border-radius: 9px; border: 1px solid var(--border2); position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle-sw.on { background: var(--green); border-color: transparent; }
+.toggle-sw::after { content: ''; position: absolute; width: 12px; height: 12px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: left 0.2s; }
+.toggle-sw.on::after { left: 16px; }
+.zone-disabled { opacity: 0.35; pointer-events: none; }
+.summary-card { background: var(--green-bg); border: 1px solid rgba(45,158,107,0.2); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--green); line-height: 1.8; }
+.bottom-bar { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
+.btn-back { padding: 0.75rem 1.5rem; border-radius: 10px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 0.9rem; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+.btn-back:hover { background: var(--surface2); color: var(--text); }
+.btn-next { padding: 0.75rem 2rem; border-radius: 10px; background: var(--accent); color: white; border: none; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; transition: opacity 0.15s; display: flex; align-items: center; gap: 8px; }
+.btn-next:hover { opacity: 0.85; }
+.btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+.view { display: none; }
+.view.active { display: block; }
+@media (max-width: 500px) { .field-row { grid-template-columns: 1fr; } .horaires-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Norm<span>resa</span></div>
+  <span style="font-size:0.8rem;color:var(--text3)">Configuration de votre restaurant</span>
+</header>
+
+<div class="container">
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-num">1</div> Infos</div>
+    <div class="step-line"></div>
+    <div class="step" id="step2"><div class="step-num">2</div> Plan de salle</div>
+    <div class="step-line"></div>
+    <div class="step" id="step3"><div class="step-num">3</div> Paiement</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="view active" id="view-1">
+    <h1 class="page-title">Votre <em>restaurant</em></h1>
+    <p class="page-sub">Ces informations seront affichées sur votre page de réservation publique.</p>
+
+    <div class="card">
+      <div class="card-title">🍽️ Informations principales</div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Nom du restaurant *</label>
+          <input class="field-input" type="text" id="resto-name" placeholder="Le Pressoir Normand" />
+        </div>
+        <div>
+          <label class="field-label">Type de cuisine *</label>
+          <input class="field-input" type="text" id="resto-cuisine" placeholder="Gastronomique, Brasserie..." />
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Ville *</label>
+          <input class="field-input" type="text" id="resto-city" placeholder="Caen" />
+        </div>
+        <div>
+          <label class="field-label">Téléphone du restaurant *</label>
+          <input class="field-input" type="tel" id="resto-phone" placeholder="02 31 00 00 00" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Adresse complète *</label>
+        <input class="field-input" type="text" id="resto-address" placeholder="12 rue de la Paix, 14000 Caen" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Description (affichée aux clients)</label>
+        <input class="field-input" type="text" id="resto-desc" placeholder="Restaurant gastronomique au coeur de Caen..." />
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🕐 Horaires d'ouverture</div>
+      <div style="margin-bottom:12px">
+        <label class="field-label">Service</label>
+        <select class="field-input" id="resto-service" onchange="updateHoraires()" style="max-width:240px">
+          <option value="soir">Soir uniquement</option>
+          <option value="midi">Midi uniquement</option>
+          <option value="both">Midi et soir</option>
+          <option value="continu">Sans coupure (continu)</option>
+        </select>
+      </div>
+      <div id="horaires-midi" style="display:none;margin-bottom:12px">
+        <div style="font-size:0.75rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em">Midi</div>
+        <div class="horaires-grid">
+          <div><label class="field-label">Ouverture midi</label><input class="field-input" type="time" id="resto-open-midi" value="12:00" /></div>
+          <div><label class="field-label">Dernière résa midi</label><input class="field-input" type="time" id="resto-close-midi" value="13:30" /></div>
+          <div></div>
+        </div>
+      </div>
+      <div id="horaires-soir" style="margin-bottom:12px">
+        <div style="font-size:0.75rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em" id="label-soir">Soir</div>
+        <div class="horaires-grid">
+          <div><label class="field-label">Ouverture soir</label><input class="field-input" type="time" id="resto-open-soir" value="19:00" /></div>
+          <div><label class="field-label">Dernière résa soir</label><input class="field-input" type="time" id="resto-close-soir" value="21:30" /></div>
+          <div></div>
+        </div>
+      </div>
+      <div style="margin-top:4px">
+        <label class="field-label">Durée entre chaque créneau</label>
+        <select class="field-input" id="resto-slot" style="max-width:240px">
+          <option value="15">Toutes les 15 minutes</option>
+          <option value="30">Toutes les 30 minutes</option>
+          <option value="45">Toutes les 45 minutes</option>
+          <option value="60" selected>Toutes les heures</option>
+          <option value="90">Toutes les 1h30</option>
+          <option value="120">Toutes les 2h</option>
+        </select>
+      </div>
+      <div style="margin-top:12px">
+        <label class="field-label">Nombre maximum de couverts par créneau</label>
+        <input class="field-input" type="number" id="resto-max-covers" min="1" value="30" style="max-width:120px" />
+        <div style="font-size:0.75rem;color:#888;margin-top:4px">Ex: 30 couverts max par heure de réservation</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📧 Votre compte Normresa</div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Email *</label>
+          <input class="field-input" type="email" id="resto-email" placeholder="contact@monresto.fr" />
+        </div>
+        <div>
+          <label class="field-label">Mot de passe *</label>
+          <input class="field-input" type="password" id="resto-password" placeholder="Min. 6 caractères" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🚫 Jours de fermeture</div>
+      <div style="margin-bottom:12px;font-size:0.82rem;color:var(--text2)">Sélectionnez les jours et services où vous êtes fermé.</div>
+      <div style="margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem;color:var(--text2)">
+          <input type="checkbox" id="never-closed" onchange="toggleNeverClosed()" style="width:16px;height:16px;accent-color:var(--accent)">
+          Ouvert tous les jours (aucun jour de fermeture)
+        </label>
+      </div>
+      <div id="closed-days-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:4px 0">Jour</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:4px 0"><span>Midi</span><span>Soir</span></div>
+      </div>
+      <div id="closed-days-list"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <span style="font-size:0.78rem;color:var(--text3)">Étape 1 sur 2</span>
+      <button class="btn-next" onclick="goToStep2()">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="view" id="view-2">
+    <h1 class="page-title">Votre <em>salle</em></h1>
+    <p class="page-sub">Configurez vos tables par zone. Modifiable à tout moment depuis votre dashboard.</p>
+
+    <div class="card">
+      <div class="card-title">🏠 Salle intérieure</div>
+      <div class="tables-grid" id="tables-salle"></div>
+      <button class="btn-add-table" onclick="addTable('salle')">+ Ajouter une table</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        🌿 Terrasse
+        <div class="zone-toggle" onclick="toggleZone('terrasse')">
+          <div class="toggle-sw" id="toggle-terrasse"></div>
+          <span id="label-terrasse">Désactivée</span>
+        </div>
+      </div>
+      <div id="zone-terrasse" class="zone-disabled">
+        <div class="tables-grid" id="tables-terrasse"></div>
+        <button class="btn-add-table" onclick="addTable('terrasse')">+ Ajouter une table</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        🍸 Bar
+        <div class="zone-toggle" onclick="toggleZone('bar')">
+          <div class="toggle-sw" id="toggle-bar"></div>
+          <span id="label-bar">Désactivé</span>
+        </div>
+      </div>
+      <div id="zone-bar" class="zone-disabled">
+        <div class="tables-grid" id="tables-bar"></div>
+        <button class="btn-add-table" onclick="addTable('bar')">+ Ajouter une table</button>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn-back" onclick="goToStep1()">← Retour</button>
+      <button class="btn-next" onclick="goToStep3()">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="view" id="view-3">
+    <h1 class="page-title">Tout est <em>prêt !</em></h1>
+    <p class="page-sub">Vérifiez vos informations avant de finaliser votre abonnement.</p>
+    <div class="summary-card" id="summary"></div>
+    <div class="card" style="text-align:center;padding:2rem">
+      <div style="font-size:2rem;margin-bottom:1rem">💳</div>
+      <div style="font-size:1.1rem;font-weight:500;margin-bottom:0.5rem">Abonnement Pro — 199€/mois</div>
+      <div style="font-size:0.82rem;color:var(--text2);margin-bottom:1.5rem">Sans engagement · Annulable à tout moment · 0% commission</div>
+      <button class="btn-next" id="btn-pay" style="width:100%;justify-content:center;font-size:1rem;padding:1rem" onclick="goToPayment()">
+        Payer et activer mon compte →
+      </button>
+    </div>
+    <div class="bottom-bar">
+      <button class="btn-back" onclick="goToStep2()">← Retour</button>
+      <span style="font-size:0.75rem;color:var(--text3)">Paiement sécurisé par Stripe</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://tagpmmmclljaqahldkys.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s";
+const STRIPE_LINK = "https://buy.stripe.com/test_3cI00j0Xhbx73Ldea2cAo00";
+
+const zones = { salle: true, terrasse: false, bar: false };
+const counters = { salle: 0, terrasse: 0, bar: 0 };
+
+function updateHoraires() {
+  const service = document.getElementById("resto-service").value;
+  const midiEl = document.getElementById("horaires-midi");
+  const soirEl = document.getElementById("horaires-soir");
+  const labelSoir = document.getElementById("label-soir");
+  if (service === "soir") {
+    soirEl.style.display = "block";
+    midiEl.style.display = "none";
+    if (labelSoir) { labelSoir.textContent = "Soir"; labelSoir.style.display = ""; }
+  } else if (service === "midi") {
+    soirEl.style.display = "none";
+    midiEl.style.display = "block";
+  } else if (service === "continu") {
+    soirEl.style.display = "block";
+    midiEl.style.display = "none";
+    if (labelSoir) { labelSoir.textContent = "Horaires continues"; labelSoir.style.display = ""; }
+  } else {
+    soirEl.style.display = "block";
+    midiEl.style.display = "block";
+    if (labelSoir) { labelSoir.textContent = "Soir"; labelSoir.style.display = ""; }
+  }
+}
+
+const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+function initClosedDays() {
+  var list = document.getElementById("closed-days-list");
+  list.innerHTML = DAYS.map(function(day) {
+    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">' +
+      '<span style="font-size:0.85rem;color:var(--text2)">' + day + '</span>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">' +
+        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.82rem;color:var(--text2)">' +
+          '<input type="checkbox" id="closed-' + day + '-midi" style="accent-color:var(--accent)"> Midi' +
+        '</label>' +
+        '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.82rem;color:var(--text2)">' +
+          '<input type="checkbox" id="closed-' + day + '-soir" style="accent-color:var(--accent)"> Soir' +
+        '</label>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function toggleNeverClosed() {
+  var neverClosed = document.getElementById("never-closed").checked;
+  document.getElementById("closed-days-list").style.opacity = neverClosed ? "0.3" : "1";
+  document.getElementById("closed-days-list").style.pointerEvents = neverClosed ? "none" : "auto";
+  if (neverClosed) {
+    DAYS.forEach(function(day) {
+      var midi = document.getElementById("closed-" + day + "-midi");
+      var soir = document.getElementById("closed-" + day + "-soir");
+      if (midi) midi.checked = false;
+      if (soir) soir.checked = false;
+    });
+  }
+}
+
+function getClosedDays() {
+  var neverClosed = document.getElementById("never-closed").checked;
+  if (neverClosed) return {};
+  var result = {};
+  DAYS.forEach(function(day) {
+    var midi = document.getElementById("closed-" + day + "-midi");
+    var soir = document.getElementById("closed-" + day + "-soir");
+    if ((midi && midi.checked) || (soir && soir.checked)) {
+      result[day.toLowerCase()] = { midi: midi ? midi.checked : false, soir: soir ? soir.checked : false };
+    }
+  });
+  return result;
+}
+
+initClosedDays();
+
+function addTable(zone) {
+  counters[zone]++;
+  const id = zone + "-" + counters[zone];
+  const grid = document.getElementById("tables-" + zone);
+  const row = document.createElement("div");
+  row.className = "table-row";
+  row.id = "row-" + id;
+  row.innerHTML =
+    "<div><label class=\"field-label\">Nom</label><input class=\"field-input\" type=\"text\" id=\"name-" + id + "\" value=\"T" + counters[zone] + "\" /></div>" +
+    "<div class=\"table-sep\" style=\"padding-top:22px\">→</div>" +
+    "<div><label class=\"field-label\">Couverts</label><input class=\"field-input\" type=\"number\" id=\"covers-" + id + "\" value=\"2\" min=\"1\" max=\"20\" /></div>" +
+    "<button class=\"btn-remove\" onclick=\"removeTable('" + id + "')\">✕</button>";
+  grid.appendChild(row);
+}
+
+function removeTable(id) {
+  const row = document.getElementById("row-" + id);
+  if (row) row.remove();
+}
+
+function toggleZone(zone) {
+  zones[zone] = !zones[zone];
+  document.getElementById("toggle-" + zone).classList.toggle("on", zones[zone]);
+  document.getElementById("zone-" + zone).classList.toggle("zone-disabled", !zones[zone]);
+  const labels = { terrasse: ["Activée","Désactivée"], bar: ["Activé","Désactivé"] };
+  document.getElementById("label-" + zone).textContent = zones[zone] ? labels[zone][0] : labels[zone][1];
+}
+
+function showView(n) {
+  document.querySelectorAll(".view").forEach(function(v) { v.classList.remove("active"); });
+  document.getElementById("view-" + n).classList.add("active");
+  ["step1","step2","step3"].forEach(function(s, i) {
+    const el = document.getElementById(s);
+    el.classList.remove("active","done");
+    if (i + 1 === n) el.classList.add("active");
+    else if (i + 1 < n) el.classList.add("done");
+  });
+  window.scrollTo(0, 0);
+}
+
+function goToStep1() { showView(1); }
+
+function goToStep2() {
+  const name = document.getElementById("resto-name").value.trim();
+  const email = document.getElementById("resto-email").value.trim();
+  const password = document.getElementById("resto-password").value;
+  const city = document.getElementById("resto-city").value.trim();
+  const phone = document.getElementById("resto-phone").value.trim();
+  const address = document.getElementById("resto-address").value.trim();
+  if (!name || !email || !password || !city || !phone || !address) {
+    alert("Merci de remplir tous les champs obligatoires (*)");
+    return;
+  }
+  if (password.length < 6) { alert("Le mot de passe doit faire au moins 6 caractères."); return; }
+  showView(2);
+}
+
+function goToStep3() {
+  const salleRows = document.querySelectorAll("#tables-salle .table-row");
+  if (salleRows.length === 0) { alert("Ajoutez au moins une table en salle."); return; }
+  buildSummary();
+  showView(3);
+}
+
+function getTables(zone) {
+  const rows = document.querySelectorAll("#tables-" + zone + " .table-row");
+  const tables = [];
+  rows.forEach(function(row) {
+    const id = row.id.replace("row-", "");
+    const name = document.getElementById("name-" + id) ? document.getElementById("name-" + id).value : "T";
+    const covers = parseInt(document.getElementById("covers-" + id) ? document.getElementById("covers-" + id).value : "2") || 2;
+    tables.push({ label: name, covers: covers, zone: zone });
+  });
+  return tables;
+}
+
+function buildSummary() {
+  const name = document.getElementById("resto-name").value;
+  const city = document.getElementById("resto-city").value;
+  const address = document.getElementById("resto-address").value;
+  const phone = document.getElementById("resto-phone").value;
+  const cuisine = document.getElementById("resto-cuisine").value;
+  const service2 = document.getElementById("resto-service").value;
+  const open = service2 === "midi" ? document.getElementById("resto-open-midi").value : document.getElementById("resto-open-soir").value;
+  const close = service2 === "midi" ? document.getElementById("resto-close-midi").value : document.getElementById("resto-close-soir").value;
+  const salle = getTables("salle").length;
+  const terr = zones.terrasse ? getTables("terrasse").length : 0;
+  const bar = zones.bar ? getTables("bar").length : 0;
+  let html = "<strong>" + name + "</strong><br>";
+  html += address + " · " + city + "<br>";
+  html += "Tel : " + phone + " · " + cuisine + "<br>";
+  html += "Horaires : " + open + " → " + close + "<br>";
+  html += "Tables : " + salle + " en salle";
+  if (zones.terrasse) html += " · " + terr + " en terrasse";
+  if (zones.bar) html += " · " + bar + " au bar";
+  html += " (" + (salle + terr + bar) + " au total)";
+  document.getElementById("summary").innerHTML = html;
+}
+
+async function goToPayment() {
+  const btn = document.getElementById("btn-pay");
+  btn.textContent = "Enregistrement...";
+  btn.disabled = true;
+
+  const name = document.getElementById("resto-name").value.trim();
+  const email = document.getElementById("resto-email").value.trim();
+  const password = document.getElementById("resto-password").value;
+  const cuisine = document.getElementById("resto-cuisine").value.trim();
+  const city = document.getElementById("resto-city").value.trim();
+  const phone = document.getElementById("resto-phone").value.trim();
+  const address = document.getElementById("resto-address").value.trim();
+  const desc = document.getElementById("resto-desc").value.trim();
+  const service2 = document.getElementById("resto-service").value;
+  const open = service2 === "midi" ? null : document.getElementById("resto-open-soir").value;
+  const close = service2 === "midi" ? null : document.getElementById("resto-close-soir").value;
+  const openMidi = (service2 === "midi" || service2 === "both") ? document.getElementById("resto-open-midi").value : null;
+  const closeMidi = (service2 === "midi" || service2 === "both") ? document.getElementById("resto-close-midi").value : null;
+
+  const slug = name.toLowerCase()
+    .replace(/[éèêë]/g, "e").replace(/[àâä]/g, "a").replace(/[ùûü]/g, "u")
+    .replace(/[ôö]/g, "o").replace(/[îï]/g, "i").replace(/ç/g, "c")
+    .replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").trim();
+
+  let allTables = getTables("salle");
+  if (zones.terrasse) allTables = allTables.concat(getTables("terrasse"));
+  if (zones.bar) allTables = allTables.concat(getTables("bar"));
+
+  try {
+    await fetch(SUPABASE_URL + "/auth/v1/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+      body: JSON.stringify({ email: email, password: password, data: { restaurant_name: name } })
+    });
+
+    const restoInsertRes = await fetch(SUPABASE_URL + "/rest/v1/restaurants", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Prefer": "return=representation" },
+      body: JSON.stringify({ name: name, slug: slug, description: desc || "Bienvenue !", cuisine: cuisine, city: city, address: address, phone: phone, open_time: open, close_time: close, open_time_midi: openMidi, close_time_midi: closeMidi, slot_duration: parseInt(document.getElementById("resto-slot").value), max_covers: parseInt(document.getElementById("resto-max-covers").value) || 30, closed_days: getClosedDays(), service_type: service2, active: true })
+    });
+
+    if (!restoInsertRes.ok) {
+      const errText = await restoInsertRes.text();
+      console.error("Erreur insert restaurant:", restoInsertRes.status, errText);
+      alert("Erreur lors de la création du restaurant (" + restoInsertRes.status + "). Veuillez réessayer.");
+      btn.textContent = "Payer et activer mon compte →";
+      btn.disabled = false;
+      return;
+    }
+
+    const restoInserted = await restoInsertRes.json();
+    const restoId = restoInserted[0] ? restoInserted[0].id : null;
+
+    if (!restoId) {
+      // Fallback: recherche par slug
+      const restoRes = await fetch(SUPABASE_URL + "/rest/v1/restaurants?slug=eq." + slug, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+      });
+      const restoData = await restoRes.json();
+      var fallbackId = restoData[0] ? restoData[0].id : null;
+      if (fallbackId && allTables.length > 0) {
+        await fetch(SUPABASE_URL + "/rest/v1/tables", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Prefer": "return=minimal" },
+          body: JSON.stringify(allTables.map(function(t) { return { restaurant_id: fallbackId, zone: t.zone, covers: t.covers, label: t.label }; }))
+        });
+      }
+    } else if (allTables.length > 0) {
+      const tablesRes = await fetch(SUPABASE_URL + "/rest/v1/tables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY, "Prefer": "return=minimal" },
+        body: JSON.stringify(allTables.map(function(t) { return { restaurant_id: restoId, zone: t.zone, covers: t.covers, label: t.label }; }))
+      });
+      if (!tablesRes.ok) {
+        const tablesErr = await tablesRes.text();
+        console.error("Erreur insert tables:", tablesRes.status, tablesErr);
+      }
+    }
+
+    // Sauvegarder les tables en localStorage comme filet de sécurité
+    // Le dashboard les insérera au premier chargement si elles sont manquantes
+    if (allTables.length > 0) {
+      localStorage.setItem("pending_tables_slug", slug);
+      localStorage.setItem("pending_tables", JSON.stringify(allTables));
+    }
+
+    window.location.href = STRIPE_LINK + "?prefilled_email=" + encodeURIComponent(email);
+
+  } catch (e) {
+    console.error("Erreur onboarding:", e);
+    alert("Une erreur est survenue. Veuillez réessayer.");
+    btn.textContent = "Payer et activer mon compte →";
+    btn.disabled = false;
+  }
+}
+
+addTable("salle");
+addTable("salle");
+addTable("salle");
+addTable("salle");
+</script>
+</body>
+</html>

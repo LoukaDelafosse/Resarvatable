@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservatable — Connexion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F8F7F5;
+  --surface: #FFFFFF;
+  --surface2: #F1EFE8;
+  --border: rgba(28,25,23,0.09);
+  --border2: rgba(28,25,23,0.16);
+  --text: #1C1917;
+  --text2: rgba(28,25,23,0.55);
+  --text3: rgba(28,25,23,0.38);
+  --accent: #C2622A;
+  --accent2: #E8A87C;
+  --green: #2D9E6B;
+  --red: #C24040;
+}
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  font-weight: 300;
+}
+
+/* subtle grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(28,25,23,0.03) 1px, transparent 1px),
+    linear-gradient(rgba(28,25,23,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  animation: fadeUp 0.3s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+.logo span { color: var(--accent2); font-style: italic; }
+
+.tagline {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text3);
+  margin-bottom: 2rem;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 1.75rem;
+}
+.tab {
+  padding: 0.55rem;
+  text-align: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 8px;
+  color: var(--text3);
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+
+.field-group { margin-bottom: 1rem; }
+.field-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.field-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: var(--text3); }
+
+.btn-submit {
+  width: 100%;
+  padding: 0.85rem;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: opacity 0.2s;
+}
+.btn-submit:hover { opacity: 0.85; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 1.25rem 0;
+  color: var(--text3);
+  font-size: 0.75rem;
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.msg {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+.msg.success { background: rgba(45,158,107,0.12); color: #2D9E6B; border: 1px solid rgba(45,158,107,0.2); }
+.msg.error { background: rgba(194,64,64,0.12); color: #E87C7C; border: 1px solid rgba(194,64,64,0.2); }
+.msg.show { display: block; }
+
+.forgot {
+  text-align: right;
+  margin-top: -0.5rem;
+  margin-bottom: 1rem;
+}
+.forgot a {
+  font-size: 0.78rem;
+  color: var(--text3);
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.forgot a:hover { color: var(--accent2); }
+
+.footer-note {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: 1.5rem;
+}
+.footer-note a { color: var(--accent2); text-decoration: none; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">Réserva<span>table</span></div>
+  <p class="tagline">Espace restaurateur</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
+    <button class="tab" id="tab-signup" onclick="switchTab('signup')">Inscription</button>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- LOGIN -->
+  <div id="form-login">
+    <div class="field-group">
+      <label class="field-label">Email</label>
+      <input class="field-input" type="email" id="login-email" placeholder="votre@email.com" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Mot de passe</label>
+      <input class="field-input" type="password" id="login-password" placeholder="••••••••" />
+    </div>
+    <div class="forgot"><a onclick="resetPassword()">Mot de passe oublié ?</a></div>
+    <button class="btn-submit" id="btn-login" onclick="login()">Se connecter</button>
+  </div>
+
+  <!-- SIGNUP -->
+  <div id="form-signup" style="display:none">
+    <div class="field-group">
+      <label class="field-label">Nom du restaurant</label>
+      <input class="field-input" type="text" id="signup-resto" placeholder="Le Pressoir Normand" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Email</label>
+      <input class="field-input" type="email" id="signup-email" placeholder="votre@email.com" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Mot de passe</label>
+      <input class="field-input" type="password" id="signup-password" placeholder="Min. 6 caractères" />
+    </div>
+    <button class="btn-submit" id="btn-signup" onclick="signup()">Créer mon compte</button>
+  </div>
+
+  <div class="footer-note">
+    En vous connectant, vous acceptez nos <a>conditions d'utilisation</a>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://tagpmmmclljaqahldkys.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s";
+
+// Si déjà connecté, rediriger vers le dashboard
+const session = localStorage.getItem("sb_session");
+if (session) {
+  window.location.href = "reservatable-dashboard.html";
+}
+
+function switchTab(tab) {
+  document.getElementById("form-login").style.display = tab === "login" ? "block" : "none";
+  document.getElementById("form-signup").style.display = tab === "signup" ? "block" : "none";
+  document.getElementById("tab-login").classList.toggle("active", tab === "login");
+  document.getElementById("tab-signup").classList.toggle("active", tab === "signup");
+  hideMsg();
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById("msg");
+  el.textContent = text;
+  el.className = "msg " + type + " show";
+}
+function hideMsg() {
+  document.getElementById("msg").className = "msg";
+}
+
+async function login() {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  if (!email || !password) { showMsg("Merci de remplir tous les champs.", "error"); return; }
+
+  const btn = document.getElementById("btn-login");
+  btn.textContent = "Connexion..."; btn.disabled = true;
+
+  const res = await fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+    body: JSON.stringify({ email: email, password: password })
+  });
+  const data = await res.json();
+
+  btn.textContent = "Se connecter"; btn.disabled = false;
+
+  if (data.access_token) {
+    localStorage.setItem("sb_session", JSON.stringify({ token: data.access_token, refresh_token: data.refresh_token, expires_at: Date.now() + (data.expires_in || 3600) * 1000, user: data.user }));
+    showMsg("Connexion réussie ! Redirection...", "success");
+    setTimeout(function() { window.location.href = "reservatable-dashboard.html"; }, 1000);
+  } else {
+    showMsg("Email ou mot de passe incorrect.", "error");
+  }
+}
+
+async function signup() {
+  const resto = document.getElementById("signup-resto").value.trim();
+  const email = document.getElementById("signup-email").value.trim();
+  const password = document.getElementById("signup-password").value;
+  if (!resto || !email || !password) { showMsg("Merci de remplir tous les champs.", "error"); return; }
+  if (password.length < 6) { showMsg("Le mot de passe doit faire au moins 6 caractères.", "error"); return; }
+
+  const btn = document.getElementById("btn-signup");
+  btn.textContent = "Création..."; btn.disabled = true;
+
+  const res = await fetch(SUPABASE_URL + "/auth/v1/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+    body: JSON.stringify({ email: email, password: password, data: { restaurant_name: resto } })
+  });
+  const data = await res.json();
+
+  btn.textContent = "Créer mon compte"; btn.disabled = false;
+
+  if (data.id || data.user) {
+    showMsg("Compte créé ! Vérifiez votre email pour confirmer votre inscription.", "success");
+  } else if (data.msg && data.msg.includes("already")) {
+    showMsg("Un compte existe déjà avec cet email.", "error");
+  } else {
+    showMsg("Erreur lors de la création du compte.", "error");
+  }
+}
+
+async function resetPassword() {
+  const email = document.getElementById("login-email").value.trim();
+  if (!email) { showMsg("Entrez votre email d'abord.", "error"); return; }
+  await fetch(SUPABASE_URL + "/auth/v1/recover", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY },
+    body: JSON.stringify({ email: email })
+  });
+  showMsg("Email de réinitialisation envoyé !", "success");
+}
+</script>
+</body>
+</html>

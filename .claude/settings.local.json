@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -rn \"function save\\\\|async function.*save\" /Users/loukadeladosse/Réservatable/*.html)",
+      "Bash(find /Users/loukadeladosse -name *.html -path */normresa* -o -name *.html -path */reservatable*)"
+    ]
+  }
+}
