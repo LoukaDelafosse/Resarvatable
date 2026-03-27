@@ -266,8 +266,8 @@ footer a { color: var(--accent); text-decoration: none; }
           <input class="field-input" type="text" id="input-name" placeholder="Marie Dupont" />
         </div>
         <div>
-          <label class="field-label">Téléphone</label>
-          <input class="field-input" type="tel" id="input-phone" placeholder="06 00 00 00 00" />
+          <label class="field-label">Téléphone <span style="color:var(--accent);font-size:0.78rem">*</span> <span style="color:var(--ink-light);font-size:0.78rem">(rappel SMS 2h avant)</span></label>
+          <input class="field-input" type="tel" id="input-phone" placeholder="06 00 00 00 00" required />
         </div>
       </div>
 
@@ -493,8 +493,9 @@ async function confirmBooking() {
   const date = document.getElementById("input-date").value;
   const covers = parseInt(document.getElementById("input-covers").value);
 
-  if (!name || !phone) { alert("Merci de renseigner votre nom et téléphone."); return; }
-  if (!email) { alert("Merci de renseigner votre email pour recevoir la confirmation et le lien d'annulation."); return; }
+  if (!name) { alert("Merci de renseigner votre prénom et nom."); return; }
+  if (!phone) { alert("Merci de renseigner votre numéro de téléphone — vous recevrez un SMS de rappel 2h avant votre réservation."); return; }
+  if (!email) { alert("Merci de renseigner votre email — vous recevrez la confirmation et le lien d'annulation par email."); return; }
   if (!selectedTime) { alert("Merci de choisir un créneau."); return; }
 
   const btn = document.getElementById("btn-confirm");
