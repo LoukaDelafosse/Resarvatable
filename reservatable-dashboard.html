@@ -844,6 +844,13 @@ body {
     </div>
     <div class="modal-2col">
       <div>
+        <label class="field-label">Date</label>
+        <input class="field" type="date" id="add-date" />
+      </div>
+      <div style="display:none"></div>
+    </div>
+    <div class="modal-2col">
+      <div>
         <label class="field-label">Heure</label>
         <select class="field" id="add-time">
           <option>19h00</option><option>19h30</option><option selected>20h00</option>
@@ -881,7 +888,6 @@ body {
 
 <div class="toast" id="toast"></div>
 
-
 <script>
 // ---- SUPABASE ----
 // ---- AUTH CHECK ----
@@ -891,11 +897,48 @@ const sbUser = sbSession ? JSON.parse(sbSession) : null;
 
 const SUPABASE_URL = 'https://tagpmmmclljaqahldkys.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
+let sbAuthToken = (sbUser && sbUser.token) ? sbUser.token : SUPABASE_KEY;
 const sbHeaders = {
   'Content-Type': 'application/json',
   'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`
+  'Authorization': 'Bearer ' + sbAuthToken
 };
+// Lectures : JWT utilisateur (RLS) — Écritures : clé anon (compatible page publique)
+const writeHeaders = {
+  'Content-Type': 'application/json',
+  'apikey': SUPABASE_KEY,
+  'Authorization': 'Bearer ' + SUPABASE_KEY
+};
+
+async function refreshTokenIfNeeded() {
+  try {
+    var session = JSON.parse(localStorage.getItem("sb_session") || "{}");
+    var expiresAt = session.expires_at || 0;
+    var refreshToken = session.refresh_token;
+    if (!refreshToken || Date.now() < expiresAt - 300000) return;
+    var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    if (!res.ok) return;
+    var data = await res.json();
+    if (data.access_token) {
+      session.token = data.access_token;
+      if (data.refresh_token) session.refresh_token = data.refresh_token;
+      session.expires_at = Date.now() + (data.expires_in || 3600) * 1000;
+      if (data.user) {
+        var oldMeta = session.user && session.user.user_metadata;
+        session.user = data.user;
+        // Préserver les user_metadata si le refresh ne les retourne pas
+        if (oldMeta && !session.user.user_metadata) session.user.user_metadata = oldMeta;
+      }
+      localStorage.setItem("sb_session", JSON.stringify(session));
+      sbAuthToken = data.access_token;
+      sbHeaders['Authorization'] = 'Bearer ' + data.access_token;
+    }
+  } catch(e) {}
+}
 
 function showToast(msg) {
   var t = document.getElementById('toast');
@@ -909,18 +952,35 @@ function showToast(msg) {
 function getDateStr(offset) {
   const d = new Date();
   d.setDate(d.getDate() + offset);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 async function loadReservations() {
+  await refreshTokenIfNeeded();
   const date = getDateStr(dayOffset);
   const tbody = document.getElementById('resa-tbody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Chargement...</td></tr>';
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const restoFilter = restoName ? '&restaurant_name=eq.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`, { headers: sbHeaders });
-  if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement</td></tr>'; return; }
+  var restoFilter;
+  if (restaurantData && restaurantData.id) {
+    restoFilter = '&restaurant_id=eq.' + restaurantData.id;
+  } else {
+    const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
+    restoFilter = restoName ? '&restaurant_name=ilike.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  }
+  const resaUrl = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`;
+  console.error('[DIAG] restaurantData:', restaurantData ? restaurantData.id : 'NULL', '| URL:', resaUrl);
+  const res = await fetch(resaUrl, { headers: sbHeaders });
+  if (!res.ok) {
+    const errTxt = await res.text();
+    console.error('[DIAG] fetch erreur:', res.status, errTxt);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement (' + res.status + ')</td></tr>';
+    return;
+  }
   const data = await res.json();
+  console.error('[DIAG] reservations reçues:', data ? data.length : 0, '| date:', date, '| filtre:', restoFilter);
   reservations = data.map(r => ({
     id: r.id,
     time: r.time || '—',
@@ -959,7 +1019,7 @@ async function loadReservations() {
 async function updateSupabaseStatus(id, status) {
   await fetch(`${SUPABASE_URL}/rest/v1/reservations?id=eq.${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
     body: JSON.stringify({ status: status })
   });
 }
@@ -967,7 +1027,7 @@ async function updateSupabaseStatus(id, status) {
 async function insertSupabaseResa(data) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
     body: JSON.stringify(data)
   });
   return res.ok;
@@ -1006,7 +1066,7 @@ function renderTable(filter) {
   const tbody = document.getElementById('resa-tbody');
   const rows = filter === 'all' ? reservations : reservations.filter(r => r.status === filter || (filter==='conf' && r.status==='arr'));
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune reservation pour ce jour</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune reservation pour ce jour<br><small style="font-size:0.7rem;opacity:0.6">date:' + getDateStr(dayOffset) + ' | resto:' + (restaurantData ? restaurantData.id : 'null') + '</small></td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -1064,8 +1124,7 @@ renderTimeline();
 
 // ---- WEEK CHART ----
 async function renderWeekChart() {
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const filter = restoName ? '&restaurant_name=eq.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
   const days7 = [];
   const dayLabels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   const today = new Date();
@@ -1124,8 +1183,7 @@ function renderSlotChart() {
 
 // ---- SMS LOAD ----
 async function loadSMS() {
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const filter = restoName ? '&restaurant_name=eq.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
   const today = getDateStr(0);
   const res = await fetch(SUPABASE_URL+'/rest/v1/reservations?date=eq.'+today+filter+'&order=created_at.desc', { headers: sbHeaders });
   const data = await res.json();
@@ -1156,7 +1214,10 @@ function showView(v) {
 }
 
 // ---- MODAL ADD ----
-function openModal() { document.getElementById('add-modal').classList.add('open'); }
+function openModal() {
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('add-date').value = getDateStr(dayOffset);
+}
 function closeModal() { document.getElementById('add-modal').classList.remove('open'); }
 function closeModalOutside(e) { if(e.target===document.getElementById('add-modal')) closeModal(); }
 
@@ -1173,11 +1234,20 @@ async function addResa() {
     covers: parseInt(document.getElementById('add-covers').value),
     note: document.getElementById('add-note').value,
     status: document.getElementById('add-status').value === 'conf' ? 'confirmed' : 'wait',
-    date: getDateStr(dayOffset),
-    restaurant_name: sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : 'Mon Restaurant'
+    date: document.getElementById('add-date').value || getDateStr(dayOffset),
+    restaurant_name: (restaurantData && restaurantData.name) ? restaurantData.name : (sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : 'Mon Restaurant'),
+    restaurant_id: restaurantData ? restaurantData.id : null
   });
   btn.textContent = 'Ajouter la réservation'; btn.disabled = false;
   if (ok) {
+    const savedDate = document.getElementById('add-date').value;
+    if (savedDate) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const [ry, rm, rd] = savedDate.split('-').map(Number);
+      const resaDate = new Date(ry, rm-1, rd);
+      dayOffset = Math.round((resaDate - today) / 86400000);
+      updateDate();
+    }
     closeModal();
     showToast('✓ Réservation ajoutée pour ' + name);
     document.getElementById('add-name').value='';
@@ -1199,31 +1269,39 @@ async function loadRestaurantData() {
   if (!restoName) return;
 
   var data = null;
+  // Ignore les valeurs corrompues "undefined"/"null" stockées par erreur
+  var _validId = function(v) { return (v && v !== 'undefined' && v !== 'null') ? v : null; };
 
-  // Essai 1 : chercher par nom exact (source de vérité)
-  var res1 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
-  var d1 = await res1.json();
-  if (d1 && d1.length > 0) data = d1;
-
-  // Essai 2 : chercher par ID en cache (clé par nom metadata)
-  if (!data || data.length === 0) {
-    var cachedId = localStorage.getItem("resto_id_" + encodeURIComponent(restoName));
-    if (cachedId) {
-      var res2 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + cachedId, { headers: sbHeaders });
-      var d2 = await res2.json();
-      if (d2 && d2.length > 0) {
-        data = d2;
-      }
+  // Essai 1 : chercher par clé stable (user UID) — le plus fiable, pas d'encoding
+  if (sbUser && sbUser.user) {
+    var stableId = _validId(localStorage.getItem('resto_id_uid_' + sbUser.user.id));
+    if (stableId) {
+      var rs1 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + stableId, { headers: sbHeaders });
+      if (rs1.ok) { var d1 = await rs1.json(); if (d1 && d1.length > 0) data = d1; }
     }
   }
 
-  // Essai 3 : chercher par clé stable (user UID) — résistant au changement de nom
-  if ((!data || data.length === 0) && sbUser && sbUser.user) {
-    var stableId = localStorage.getItem('resto_id_uid_' + sbUser.user.id);
-    if (stableId) {
-      var res3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + stableId, { headers: sbHeaders });
-      var d3 = await res3.json();
-      if (d3 && d3.length > 0) data = d3;
+  // Essai 2 : chercher par ID en cache (clé par nom metadata)
+  if (!data || data.length === 0) {
+    var cachedId = _validId(localStorage.getItem("resto_id_" + encodeURIComponent(restoName)));
+    if (cachedId) {
+      var rs2 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + cachedId, { headers: sbHeaders });
+      if (rs2.ok) { var d2 = await rs2.json(); if (d2 && d2.length > 0) data = d2; }
+    }
+  }
+
+  // Essai 3 : chercher par nom insensible à la casse (dernier recours)
+  if (!data || data.length === 0) {
+    var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
+    if (rs3.ok) { var d3 = await rs3.json(); if (d3 && d3.length > 0) data = d3; }
+  }
+
+  // Essai 4 : chercher par slug dérivé du nom (si le nom a changé légèrement)
+  if (!data || data.length === 0) {
+    var slugFallback = restoName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    if (slugFallback) {
+      var rs4 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?slug=ilike.' + encodeURIComponent(slugFallback), { headers: sbHeaders });
+      if (rs4.ok) { var d4 = await rs4.json(); if (d4 && d4.length > 0) data = d4; }
     }
   }
 
@@ -1255,7 +1333,7 @@ async function loadRestaurantData() {
           var pendingTables = JSON.parse(pendingTablesStr);
           var insertRes = await fetch(SUPABASE_URL + '/rest/v1/tables', {
             method: 'POST',
-            headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
+            headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
             body: JSON.stringify(pendingTables.map(function(t) { return { restaurant_id: restoId, zone: t.zone, covers: t.covers, label: t.label }; }))
           });
           if (insertRes.ok) {
@@ -1431,7 +1509,7 @@ function assignTable(tableId) {
       r.table_id = tableId;
       fetch(SUPABASE_URL+'/rest/v1/reservations?id=eq.'+r.id, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Prefer': 'return=minimal' },
+        headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' }),
         body: JSON.stringify({ table_id: tableId })
       });
       renderFloor();
@@ -1488,6 +1566,7 @@ if (sbUser && sbUser.user && sbUser.user.user_metadata && sbUser.user.user_metad
 
 // ---- SAVE RESTAURANT INFO ----
 async function saveRestaurantInfo() {
+  await refreshTokenIfNeeded();
   if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
   var name = document.getElementById('settings-name').value.trim();
   var city = document.getElementById('settings-city').value.trim();
@@ -1502,10 +1581,10 @@ async function saveRestaurantInfo() {
     address: document.getElementById('settings-address').value.trim(),
     phone: document.getElementById('settings-phone').value.trim(),
   };
-  var res = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + restaurantData.id, {
-    method: 'PATCH',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
-    body: JSON.stringify(payload)
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
   });
   if (res.ok) {
     var oldName = restaurantData.name;
@@ -1525,42 +1604,53 @@ async function saveRestaurantInfo() {
       localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
     }
     showToast('Informations sauvegardées !');
+  } else {
+    res.json().then(function(t) {
+      console.error('saveRestaurantInfo error', res.status, t);
+      var msg = (t && t.error) ? String(t.error).substring(0, 120) : ('HTTP ' + res.status);
+      showToast('Erreur (' + res.status + '): ' + msg);
+    }).catch(function() { showToast('Erreur HTTP ' + res.status); });
   }
-  else showToast('Erreur lors de la sauvegarde');
 }
 
 // ---- SAVE CRENEAUX ----
 async function saveCreneaux() {
-  if (!restaurantData) return;
+  await refreshTokenIfNeeded();
+  if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
   var serviceType = document.getElementById('settings-service-type').value;
+  var slotVal = parseInt(document.getElementById('settings-slot').value);
+  var maxVal  = parseInt(document.getElementById('settings-max-covers').value);
   var payload = {
     service_type: serviceType,
-    slot_duration: parseInt(document.getElementById('settings-slot').value),
-    max_covers: parseInt(document.getElementById('settings-max-covers').value),
+    slot_duration: isNaN(slotVal) ? 30 : slotVal,
+    max_covers:    isNaN(maxVal)  ? 20 : maxVal,
   };
   if (serviceType === 'soir' || serviceType === 'continu') {
-    payload.open_time = document.getElementById('settings-open').value;
-    payload.close_time = document.getElementById('settings-close').value;
-    payload.open_time_midi = null;
-    payload.close_time_midi = null;
+    payload.open_time  = document.getElementById('settings-open').value  || '19:00';
+    payload.close_time = document.getElementById('settings-close').value || '22:00';
   } else if (serviceType === 'midi') {
-    payload.open_time = null;
-    payload.close_time = null;
-    payload.open_time_midi = document.getElementById('settings-open-midi').value;
-    payload.close_time_midi = document.getElementById('settings-close-midi').value;
+    payload.open_time_midi  = document.getElementById('settings-open-midi').value  || '12:00';
+    payload.close_time_midi = document.getElementById('settings-close-midi').value || '14:00';
   } else if (serviceType === 'both') {
-    payload.open_time = document.getElementById('settings-open').value;
-    payload.close_time = document.getElementById('settings-close').value;
-    payload.open_time_midi = document.getElementById('settings-open-midi').value;
-    payload.close_time_midi = document.getElementById('settings-close-midi').value;
+    payload.open_time       = document.getElementById('settings-open').value       || '19:00';
+    payload.close_time      = document.getElementById('settings-close').value      || '22:00';
+    payload.open_time_midi  = document.getElementById('settings-open-midi').value  || '12:00';
+    payload.close_time_midi = document.getElementById('settings-close-midi').value || '14:00';
   }
-  var res = await fetch(SUPABASE_URL + '/rest/v1/restaurants?id=eq.' + restaurantData.id, {
-    method: 'PATCH',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' }),
-    body: JSON.stringify(payload)
+  console.log('saveCreneaux payload:', JSON.stringify(payload), 'restaurantId:', restaurantData.id);
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
   });
   if (res.ok) { Object.assign(restaurantData, payload); showToast('Créneaux sauvegardés !'); }
-  else showToast('Erreur lors de la sauvegarde');
+  else {
+    res.json().then(function(t) {
+      console.error('saveCreneaux error', res.status, t);
+      var msg = (t && t.error) ? String(t.error).substring(0, 120) : ('HTTP ' + res.status);
+      showToast('Erreur (' + res.status + '): ' + msg);
+    }).catch(function() { showToast('Erreur HTTP ' + res.status); });
+  }
 }
 
 // ---- TABLE MANAGEMENT ----
@@ -1572,7 +1662,7 @@ async function addTable() {
   if (!label) { showToast('Entrez un libellé pour la table'); return; }
   var res = await fetch(SUPABASE_URL + '/rest/v1/tables', {
     method: 'POST',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=representation' }),
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=representation' }),
     body: JSON.stringify({ restaurant_id: restaurantData.id, label: label, covers: covers, zone: zone })
   });
   if (res.ok) {
@@ -1589,7 +1679,7 @@ async function deleteTable(tableId) {
   if (!confirm('Supprimer cette table ?')) return;
   var res = await fetch(SUPABASE_URL + '/rest/v1/tables?id=eq.' + tableId, {
     method: 'DELETE',
-    headers: Object.assign({}, sbHeaders, { 'Prefer': 'return=minimal' })
+    headers: Object.assign({}, writeHeaders, { 'Prefer': 'return=minimal' })
   });
   if (res.ok) { await loadRestaurantData(); showToast('Table supprimée'); }
   else showToast('Erreur lors de la suppression');
@@ -1597,6 +1687,7 @@ async function deleteTable(tableId) {
 
 // ---- SAVE CLOSED DAYS ----
 async function saveClosedDays() {
+  await refreshTokenIfNeeded();
   if (!restaurantData) { showToast('Restaurant non chargé, rechargez la page'); return; }
   var days = ["lundi","mardi","mercredi","jeudi","vendredi","samedi","dimanche"];
   var result = {};
@@ -1607,10 +1698,10 @@ async function saveClosedDays() {
       result[day] = { midi: midi ? midi.checked : false, soir: soir ? soir.checked : false };
     }
   });
-  var res = await fetch(SUPABASE_URL + "/rest/v1/restaurants?id=eq." + restaurantData.id, {
-    method: "PATCH",
-    headers: Object.assign({}, sbHeaders, { "Prefer": "return=minimal" }),
-    body: JSON.stringify({ closed_days: result })
+  var res = await fetch('/api/update-restaurant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ restaurantId: restaurantData.id, payload: { closed_days: result } })
   });
   if (res.ok) {
     restaurantData.closed_days = result;
