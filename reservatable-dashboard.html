@@ -977,6 +977,7 @@ async function loadReservations() {
   if (!res.ok) {
     const errTxt = await res.text();
     console.error('[DIAG] fetch erreur:', res.status, errTxt);
+    if (res.status === 401) { localStorage.removeItem("sb_session"); window.location.href = "login.html"; return; }
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement (' + res.status + ')</td></tr>';
     return;
   }
@@ -1290,10 +1291,16 @@ async function loadRestaurantData() {
     }
   }
 
-  // Essai 3 : chercher par nom insensible à la casse (dernier recours)
+  // Essai 3 : chercher par nom exact insensible à la casse
   if (!data || data.length === 0) {
     var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
     if (rs3.ok) { var d3 = await rs3.json(); if (d3 && d3.length > 0) data = d3; }
+  }
+
+  // Essai 3b : chercher par correspondance partielle (nom metadata peut être tronqué/différent)
+  if (!data || data.length === 0) {
+    var rs3b = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent('%' + restoName + '%'), { headers: sbHeaders });
+    if (rs3b.ok) { var d3b = await rs3b.json(); if (d3b && d3b.length > 0) data = d3b; }
   }
 
   // Essai 4 : chercher par slug dérivé du nom (si le nom a changé légèrement)
@@ -1307,8 +1314,11 @@ async function loadRestaurantData() {
 
   if (data && data.length > 0) {
     restaurantData = data[0];
-    // Cache l'ID par nom de restaurant (clé spécifique à ce restaurant)
+    // Cache l'ID par nom metadata ET par UID utilisateur (plus stable)
     localStorage.setItem("resto_id_" + encodeURIComponent(restoName), restaurantData.id);
+    if (sbUser && sbUser.user && sbUser.user.id) {
+      localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
+    }
     updateSettingsUI();
   }
 
