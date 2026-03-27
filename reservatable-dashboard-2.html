@@ -963,9 +963,13 @@ async function loadReservations() {
   const date = getDateStr(dayOffset);
   const tbody = document.getElementById('resa-tbody');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Chargement...</td></tr>';
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const effectiveRestoName = (restaurantData && restaurantData.name) ? restaurantData.name : restoName;
-  const restoFilter = effectiveRestoName ? '&restaurant_name=ilike.' + encodeURIComponent(effectiveRestoName) : '&restaurant_name=eq.AUCUN';
+  var restoFilter;
+  if (restaurantData && restaurantData.id) {
+    restoFilter = '&restaurant_id=eq.' + restaurantData.id;
+  } else {
+    const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
+    restoFilter = restoName ? '&restaurant_name=ilike.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`, { headers: sbHeaders });
   if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement</td></tr>'; return; }
   const data = await res.json();
@@ -1112,8 +1116,7 @@ renderTimeline();
 
 // ---- WEEK CHART ----
 async function renderWeekChart() {
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const filter = restoName ? '&restaurant_name=eq.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
   const days7 = [];
   const dayLabels = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   const today = new Date();
@@ -1172,8 +1175,7 @@ function renderSlotChart() {
 
 // ---- SMS LOAD ----
 async function loadSMS() {
-  const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
-  const filter = restoName ? '&restaurant_name=eq.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
+  const filter = (restaurantData && restaurantData.id) ? '&restaurant_id=eq.' + restaurantData.id : '&restaurant_name=eq.AUCUN';
   const today = getDateStr(0);
   const res = await fetch(SUPABASE_URL+'/rest/v1/reservations?date=eq.'+today+filter+'&order=created_at.desc', { headers: sbHeaders });
   const data = await res.json();
@@ -1225,7 +1227,8 @@ async function addResa() {
     note: document.getElementById('add-note').value,
     status: document.getElementById('add-status').value === 'conf' ? 'confirmed' : 'wait',
     date: document.getElementById('add-date').value || getDateStr(dayOffset),
-    restaurant_name: (restaurantData && restaurantData.name) ? restaurantData.name : (sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : 'Mon Restaurant')
+    restaurant_name: (restaurantData && restaurantData.name) ? restaurantData.name : (sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : 'Mon Restaurant'),
+    restaurant_id: restaurantData ? restaurantData.id : null
   });
   btn.textContent = 'Ajouter la réservation'; btn.disabled = false;
   if (ok) {

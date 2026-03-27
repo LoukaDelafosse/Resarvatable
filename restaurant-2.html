@@ -506,6 +506,7 @@ async function confirmBooking() {
     headers: Object.assign({}, sbHeaders, { "Prefer": "return=representation" }),
     body: JSON.stringify({
       restaurant_name: restaurant.name,
+      restaurant_id: restaurant.id,
       guest_name: name,
       guest_phone: phone,
       email: email || null,
