@@ -970,9 +970,13 @@ async function loadReservations() {
     const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
     restoFilter = restoName ? '&restaurant_name=ilike.' + encodeURIComponent(restoName) : '&restaurant_name=eq.AUCUN';
   }
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`, { headers: sbHeaders });
+  const resaUrl = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`;
+  console.log('[DEBUG] restaurantData:', restaurantData ? {id: restaurantData.id, name: restaurantData.name} : null);
+  console.log('[DEBUG] loadReservations URL:', resaUrl);
+  const res = await fetch(resaUrl, { headers: sbHeaders });
   if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement</td></tr>'; return; }
   const data = await res.json();
+  console.log('[DEBUG] reservations reçues:', data ? data.length : 0, data);
   reservations = data.map(r => ({
     id: r.id,
     time: r.time || '—',
