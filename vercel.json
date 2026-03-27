@@ -7,5 +7,14 @@
     { "source": "/onboarding.html", "destination": "/onboarding-2.html" },
     { "source": "/restaurant.html", "destination": "/restaurant-2.html" },
     { "source": "/reservatable-dashboard.html", "destination": "/reservatable-dashboard-2.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" }
+      ]
+    }
   ]
 }
