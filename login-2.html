@@ -198,11 +198,6 @@ body::before {
   <div class="logo">Réserva<span>table</span></div>
   <p class="tagline">Espace restaurateur</p>
 
-  <div class="tabs">
-    <button class="tab active" id="tab-login" onclick="switchTab('login')">Connexion</button>
-    <button class="tab" id="tab-signup" onclick="switchTab('signup')">Inscription</button>
-  </div>
-
   <div id="msg" class="msg"></div>
 
   <!-- LOGIN -->
@@ -217,23 +212,6 @@ body::before {
     </div>
     <div class="forgot"><a onclick="resetPassword()">Mot de passe oublié ?</a></div>
     <button class="btn-submit" id="btn-login" onclick="login()">Se connecter</button>
-  </div>
-
-  <!-- SIGNUP -->
-  <div id="form-signup" style="display:none">
-    <div class="field-group">
-      <label class="field-label">Nom du restaurant</label>
-      <input class="field-input" type="text" id="signup-resto" placeholder="Le Pressoir Normand" />
-    </div>
-    <div class="field-group">
-      <label class="field-label">Email</label>
-      <input class="field-input" type="email" id="signup-email" placeholder="votre@email.com" />
-    </div>
-    <div class="field-group">
-      <label class="field-label">Mot de passe</label>
-      <input class="field-input" type="password" id="signup-password" placeholder="Min. 6 caractères" />
-    </div>
-    <button class="btn-submit" id="btn-signup" onclick="signup()">Créer mon compte</button>
   </div>
 
   <div class="footer-note">

@@ -741,6 +741,10 @@ body {
           <div class="setting-row"><span class="setting-label">Cuisine</span><input class="setting-input" id="settings-cuisine" type="text" value="—" style="width:160px" /></div>
           <div class="setting-row"><span class="setting-label">Adresse</span><input class="setting-input" id="settings-address" type="text" value="—" style="width:160px" /></div>
           <div class="setting-row"><span class="setting-label">Téléphone</span><input class="setting-input" id="settings-phone" type="text" value="—" style="width:160px" /></div>
+          <div style="padding:0.6rem 0">
+            <div class="setting-label" style="margin-bottom:6px">Description</div>
+            <textarea class="setting-input" id="settings-description" rows="3" placeholder="Décrivez votre restaurant..." style="width:100%;resize:vertical;line-height:1.5;padding:8px 10px;font-family:var(--font-sans);font-size:0.82rem"></textarea>
+          </div>
           <button onclick="saveRestaurantInfo()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Sauvegarder</button>
         </div>
         <div class="settings-card">
@@ -1420,6 +1424,7 @@ function updateSettingsUI() {
     ['settings-cuisine', restaurantData.cuisine],
     ['settings-address', restaurantData.address],
     ['settings-phone', restaurantData.phone],
+    ['settings-description', restaurantData.description],
     ['settings-open', restaurantData.open_time],
     ['settings-close', restaurantData.close_time],
   ];
@@ -1577,6 +1582,7 @@ async function saveRestaurantInfo() {
     cuisine: document.getElementById('settings-cuisine').value.trim(),
     address: document.getElementById('settings-address').value.trim(),
     phone: document.getElementById('settings-phone').value.trim(),
+    description: document.getElementById('settings-description').value.trim(),
   };
   var res = await fetch('/api/update-restaurant', {
     method: 'POST',
