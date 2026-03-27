@@ -6,7 +6,7 @@
     { "source": "/login.html", "destination": "/login-2.html" },
     { "source": "/onboarding.html", "destination": "/onboarding-2.html" },
     { "source": "/restaurant.html", "destination": "/restaurant-2.html" },
-    { "source": "/reservatable-dashboard.html", "destination": "/reservatable-dashboard-app.html" }
+    { "source": "/reservatable-dashboard.html", "destination": "/reservatable-dashboard-main.html" }
   ],
   "headers": [
     {
