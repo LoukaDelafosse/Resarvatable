@@ -83,7 +83,7 @@ module.exports = async function handler(req, res) {
 
       // Priorité : SMS si numéro valide
       if (phone) {
-        const smsContent = `Bonjour ${name}, rappel : votre table chez ${r.restaurant_name} est dans 2h, à ${r.time} pour ${coversTxt}. Pour annuler, consultez l'email de confirmation (vérifiez vos spams). - Normresa`;
+        const smsContent = `Bonjour ${name}, rappel : votre table chez ${r.restaurant_name} est à ${r.time} pour ${coversTxt}. Pour annuler, consultez l'email de confirmation (vérifiez vos spams). - Normresa`;
 
         const smsRes = await fetch("https://api.brevo.com/v3/transactionalSMS/sms", {
           method: "POST",
