@@ -743,7 +743,7 @@ body {
           <div class="setting-row"><span class="setting-label">Téléphone</span><input class="setting-input" id="settings-phone" type="text" value="—" style="width:160px" /></div>
           <div style="padding:0.6rem 0;border-top:1px solid var(--border)">
             <div class="setting-label" style="margin-bottom:6px">Description</div>
-            <textarea class="setting-input" id="settings-description" rows="3" placeholder="Décrivez votre restaurant en quelques mots..." style="width:100%;resize:vertical;line-height:1.5;padding:8px 10px;font-family:var(--font-sans);font-size:0.82rem"></textarea>
+            <textarea class="setting-input" id="settings-description" rows="3" placeholder="Décrivez votre restaurant en quelques mots..." style="width:100%;resize:vertical;line-height:1.5;padding:8px 10px;font-family:var(--font-sans);font-size:0.82rem;text-align:left"></textarea>
           </div>
           <button onclick="saveRestaurantInfo()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Sauvegarder</button>
         </div>
@@ -1584,11 +1584,14 @@ async function saveRestaurantInfo() {
     phone: document.getElementById('settings-phone').value.trim(),
     description: document.getElementById('settings-description').value.trim(),
   };
+  console.log('[saveRestaurantInfo] payload:', JSON.stringify(payload));
+  console.log('[saveRestaurantInfo] restaurantId:', restaurantData.id);
   var res = await fetch('/api/update-restaurant', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
   });
+  console.log('[saveRestaurantInfo] response status:', res.status, res.ok);
   if (res.ok) {
     var oldName = restaurantData.name;
     Object.assign(restaurantData, payload);
