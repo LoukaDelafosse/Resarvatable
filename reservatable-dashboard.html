@@ -741,6 +741,10 @@ body {
           <div class="setting-row"><span class="setting-label">Cuisine</span><input class="setting-input" id="settings-cuisine" type="text" value="—" style="width:160px" /></div>
           <div class="setting-row"><span class="setting-label">Adresse</span><input class="setting-input" id="settings-address" type="text" value="—" style="width:160px" /></div>
           <div class="setting-row"><span class="setting-label">Téléphone</span><input class="setting-input" id="settings-phone" type="text" value="—" style="width:160px" /></div>
+          <div style="padding:0.6rem 0;border-top:1px solid var(--border)">
+            <div class="setting-label" style="margin-bottom:6px">Description</div>
+            <textarea class="setting-input" id="settings-description" rows="3" placeholder="Décrivez votre restaurant en quelques mots..." style="width:100%;resize:vertical;line-height:1.5;padding:8px 10px;font-family:var(--font-sans);font-size:0.82rem;text-align:left"></textarea>
+          </div>
           <button onclick="saveRestaurantInfo()" style="margin-top:12px;width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:0.82rem;font-family:var(--font-sans);cursor:pointer;">Sauvegarder</button>
         </div>
         <div class="settings-card">
@@ -894,7 +898,6 @@ body {
 const sbSession = localStorage.getItem("sb_session");
 if (!sbSession) { window.location.href = "login.html"; }
 const sbUser = sbSession ? JSON.parse(sbSession) : null;
-let restaurantData = null;
 
 const SUPABASE_URL = 'https://tagpmmmclljaqahldkys.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3BtbW1jbGxqYXFhaGxka3lzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMzAzMjcsImV4cCI6MjA4OTYwNjMyN30.1sksxKeQqKV_xXj658rtQx-F3Okj4vCcUAiniWwMY9s';
@@ -974,7 +977,7 @@ async function loadReservations() {
   const resaUrl = `${SUPABASE_URL}/rest/v1/reservations?date=eq.${date}${restoFilter}&order=time.asc`;
   const res = await fetch(resaUrl, { headers: sbHeaders });
   if (!res.ok) {
-    if (res.status === 401) { localStorage.removeItem("sb_session"); window.location.href = "login.html"; return; }
+    const errTxt = await res.text();
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red)">Erreur de chargement (' + res.status + ')</td></tr>';
     return;
   }
@@ -1064,7 +1067,7 @@ function renderTable(filter) {
   const tbody = document.getElementById('resa-tbody');
   const rows = filter === 'all' ? reservations : reservations.filter(r => r.status === filter || (filter==='conf' && r.status==='arr'));
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune reservation pour ce jour</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">Aucune réservation pour ce jour</td></tr>';
     return;
   }
   tbody.innerHTML = rows.map(r => {
@@ -1260,6 +1263,7 @@ async function addResa() {
 // ---- TABLES DATA ----
 let tablesData = { salle: [], terrasse: [], bar: [] };
 let currentFloorZone = 'salle';
+let restaurantData = null;
 
 async function loadRestaurantData() {
   const restoName = sbUser && sbUser.user && sbUser.user.user_metadata ? sbUser.user.user_metadata.restaurant_name : null;
@@ -1287,16 +1291,10 @@ async function loadRestaurantData() {
     }
   }
 
-  // Essai 3 : chercher par nom exact insensible à la casse
+  // Essai 3 : chercher par nom insensible à la casse (dernier recours)
   if (!data || data.length === 0) {
     var rs3 = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent(restoName), { headers: sbHeaders });
     if (rs3.ok) { var d3 = await rs3.json(); if (d3 && d3.length > 0) data = d3; }
-  }
-
-  // Essai 3b : chercher par correspondance partielle (nom metadata peut être tronqué/différent)
-  if (!data || data.length === 0) {
-    var rs3b = await fetch(SUPABASE_URL + '/rest/v1/restaurants?name=ilike.' + encodeURIComponent('%' + restoName + '%'), { headers: sbHeaders });
-    if (rs3b.ok) { var d3b = await rs3b.json(); if (d3b && d3b.length > 0) data = d3b; }
   }
 
   // Essai 4 : chercher par slug dérivé du nom (si le nom a changé légèrement)
@@ -1310,11 +1308,8 @@ async function loadRestaurantData() {
 
   if (data && data.length > 0) {
     restaurantData = data[0];
-    // Cache l'ID par nom metadata ET par UID utilisateur (plus stable)
+    // Cache l'ID par nom de restaurant (clé spécifique à ce restaurant)
     localStorage.setItem("resto_id_" + encodeURIComponent(restoName), restaurantData.id);
-    if (sbUser && sbUser.user && sbUser.user.id) {
-      localStorage.setItem('resto_id_uid_' + sbUser.user.id, restaurantData.id);
-    }
     updateSettingsUI();
   }
 
@@ -1429,6 +1424,7 @@ function updateSettingsUI() {
     ['settings-cuisine', restaurantData.cuisine],
     ['settings-address', restaurantData.address],
     ['settings-phone', restaurantData.phone],
+    ['settings-description', restaurantData.description],
     ['settings-open', restaurantData.open_time],
     ['settings-close', restaurantData.close_time],
   ];
@@ -1586,12 +1582,16 @@ async function saveRestaurantInfo() {
     cuisine: document.getElementById('settings-cuisine').value.trim(),
     address: document.getElementById('settings-address').value.trim(),
     phone: document.getElementById('settings-phone').value.trim(),
+    description: document.getElementById('settings-description').value.trim(),
   };
+  console.log('[saveRestaurantInfo] payload:', JSON.stringify(payload));
+  console.log('[saveRestaurantInfo] restaurantId:', restaurantData.id);
   var res = await fetch('/api/update-restaurant', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ restaurantId: restaurantData.id, payload: payload })
   });
+  console.log('[saveRestaurantInfo] response status:', res.status, res.ok);
   if (res.ok) {
     var oldName = restaurantData.name;
     Object.assign(restaurantData, payload);
